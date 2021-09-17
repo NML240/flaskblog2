@@ -1,0 +1,20 @@
+<!-- This is the /profile/<string:username>". route --> 
+{% extends "layout.html" %}
+ 
+<!-- title is post -->
+{% block title %}  {{title}}  {% endblock title %} 
+    
+<!-- Have all the user posts -->
+{% block content %}
+        {% if current_user.is_authenticated %} 
+                <h1> todo edit profile button  </h1> 
+        {% endif %}
+                {{ (username.username) }}
+                {% for column in username.posts %}
+                        {{ (column.email) }}
+                        {{ (column.title) }}
+                        {{ (column.content) }}
+                        {{ (column.date_posted) }}    
+                {% endfor %}    
+{% endblock content %}
+     

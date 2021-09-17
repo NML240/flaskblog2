@@ -1,0 +1,17 @@
+
+<!-- This contains all the information from the Posts db for the current user  -->
+{% extends "layout.html" %}nm
+<!-- title is account -->
+{% block title %}  {{title}}  {% endblock title %} 
+<!-- should I use block content or an different name?-->
+{% block content %}
+
+{% for column in Posts.currentuser_id %}
+       
+    {{ (column.user.username) }}
+    {{ (column.date_posted) }}
+    {{ (column.title) }}
+    {{ (column.content) }}
+{% endfor %}
+
+{% endblock content %}
