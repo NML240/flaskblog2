@@ -129,7 +129,7 @@ def login():
 
 
 
-
+# for some reason I can go to the new post route when loggerd in? Need to fix
 @userinfo.route("/logoff")
 @login_required
 def logoff():

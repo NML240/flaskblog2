@@ -1,19 +1,23 @@
   
 {% extends "layout.html" %}
  
-<!-- title is post -->
+<!-- title is post or edit_post -->
 {% block title %}  {{title}}  {% endblock title %} 
 {% block content %}
-        <!-- only the original poster can edit there post --> 
-        <!--  /edit_post route -->  
-        {% if current_user.authenticated and current_user.username == title.user.username %} 
+        
+        <!-- When the if statement executes the /edit_post route executes when the edit button is pushed.--> 
+          
+        <!-- Only the original poster can edit there post. -->
+        {% if current_user.authenticated and post.user.username == current_user.username %} 
          <!--  post_id = post/nth --> 
-        <h2> <a href="{{ url_for('postinfo.edit_post', post_id=post_id) }}"> <button> edit</button> </a> </h2>                  
+        <h2> <a href="{{ url_for('postinfo.edit_post', post_id=post_id) }}"> <button> edit</button> </a> </h2>  
+        <!-- todo add submit button --> 
         {% endif %} 
-                <!--  This is/post route -->      
+                <!-- /post route -->                    
                 <!-- username -->
                 <h2> <a href="{{ url_for ('userinfo.profile', username=post_id.user.username) }}">  {{ (post_id.user.username) }} </a> </h2>                                                 
-                {{ (post_id.title) }}
-                {{ (post_id.content) }} 
-                {{ (post_id.date_posted) }}                     
+                {{ (post.title) }}
+                {{ (post.content) }} 
+                {{ (post.date_posted) }}                     
 {% endblock content %}
+

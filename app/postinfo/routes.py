@@ -34,10 +34,10 @@ def new_post():
 def post(post_id):
     # Pass on the Posts database to the post_number variable. If the post doesn't exist get 404 error
     # The reason I don't use Posts.id is because I want a certain "Posts database id". 
-    post_id = Posts.query.get_or_404(post_id)
+    post = Posts.query.get_or_404(post_id)
     posts = 'post/'+'post_number'
     
-    return render_template('post.html', post_id=post_id,  title=posts)
+    return render_template('post.html', post=post, title=posts)
 
 
 # The reason you have post_id is because you only want to edit 1 post at a time. 
@@ -45,7 +45,7 @@ def post(post_id):
 @postinfo.route("/post/edit/<int:post_id>", methods = ['POST', 'GET'])
 # edit/update posts
 @login_required
-def edit_post(): 
+def edit_post(post_id): 
     form = Postform() 
     if request.method == 'POST' and form.validate(): 
         title = form.tilte.data
@@ -53,7 +53,7 @@ def edit_post():
         # date_posted = form.content.data
         db.commit()
         # todo make it so only the original poster can edit there post
-        return render_template('edit.html', title='edit_post', form=form) 
+        return render_template('post.html', title='edit_post', post=content, form=form) 
 
 
 
