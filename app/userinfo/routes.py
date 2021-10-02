@@ -18,7 +18,7 @@ userinfo = Blueprint('userinfo', __name__)
 
  
 # why not .forms? Beacuse it is an class and needs "()" brackets
-from app.userinfo.forms import (RegistrationForm, LoginForm, Postform)
+from app.userinfo.forms import (RegistrationForm, LoginForm)
  
   
 

@@ -5,19 +5,19 @@
 {% block title %}  {{title}}  {% endblock title %} 
 {% block content %}
         
-        <!-- When the if statement executes the /edit_post route executes when the edit button is pushed.--> 
+        <!-- When the if statement executes the edit button appears. If clicked you are taken to edit_post route in new_post -->
           
         <!-- Only the original poster can edit there post. -->
-        {% if current_user.authenticated and post.user.username == current_user.username %} 
+        {% if current_user.is_authenticated and post.user.username == current_user.username %} 
          <!--  post_id = post/nth --> 
         <h2> <a href="{{ url_for('postinfo.edit_post', post_id=post_id) }}"> <button> edit</button> </a> </h2>  
-        <!-- todo add submit button --> 
+         
         {% endif %} 
                 <!-- /post route -->                    
                 <!-- username -->
-                <h2> <a href="{{ url_for ('userinfo.profile', username=post_id.user.username) }}">  {{ (post_id.user.username) }} </a> </h2>                                                 
+                <h2> <a href="{{ url_for ('userinfo.profile', username=post.user.username) }}">  {{ (post.user.username) }} </a> </h2>                                                 
                 {{ (post.title) }}
                 {{ (post.content) }} 
                 {{ (post.date_posted) }}                     
-{% endblock content %}
 
+{% endblock content %}
