@@ -6,9 +6,11 @@
     
 <!-- Have all the user posts -->
 {% block content %}
+        <img src="img_girl.jpg" alt="Girl in a jacket"> 
         {% if current_user.is_authenticated %} 
-                <h1> todo edit profile button  </h1> 
+                <h1> todo delete profile button  </h1>         
         {% endif %}
+ 
                 {{ (username.username) }}
                 {% for column in username.posts %}
                         {{ (column.email) }}

@@ -52,6 +52,20 @@ def edit_post(post_id):
     return render_template('new_post.html', title='edit_post', form=form) 
 
 
+# Can I go ("/post/<int:post_id>/delete") instead of below? 
+@postinfo.route("/post/delete/<int:post_id>", methods = ['POST', 'GET'])
+@login_required
+def delete_post(post_id): 
+    form = Postform()
+    if request.method == 'POST' and form.validate():  
+        title = form.title.data
+        content = form.content.data 
+        db_post_info = Posts(title=title, content=content)
+        db.session.delete(db_post_info)
+        db.session.commit()
+        flash('You have deleted your post')
+    # where should this link to?
+    return render_template('home.html', title='delete_post', form=form)
 
 # gives you ability to click on posts from home route and see the posts
 # create the post/number route

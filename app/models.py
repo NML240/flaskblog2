@@ -2,7 +2,7 @@
 from enum import unique
 from datetime import datetime
 from app import db 
-from sqlalchemy import Column, Integer, String 
+from sqlalchemy import Column, Integer, String, LargeBinary
 from flask_login import UserMixin, LoginManager
 
 # https://stackoverflow.com/questions/63231163/what-is-the-usermixin-in-flask
@@ -16,10 +16,12 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     hashed_password = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    profile_pic = db.Column(db.LargeBinary, nullable=False)
     # If I want to link the Posts database to the User database I can go Posts.user.id
     # I think I need a column from the Posts database. 
     # I think I can link the User database to the Posts. I can go User.user.id. I get the Posts id. 
     posts = db.relationship('Posts', backref='user', lazy=True)
+
     # what does this do?
     def __repr__(self):
         return '<User %r>' % self.username 
@@ -42,7 +44,7 @@ class Posts(UserMixin, db.Model):
 
 from app import login_manager
 # Use User.query.get instead of User.get because of sqlalchemy
-# what is user_id
+# what is this function?
 @login_manager.user_loader
 def load_user(user_id):
    return User.query.get(user_id)

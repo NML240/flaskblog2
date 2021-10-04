@@ -1,10 +1,14 @@
-# start with making the post work
-
+import os
 # use variables in routes 
 from flask import Blueprint, flash, session, render_template, redirect,  request, url_for
+
+# make file uploading possible
+from werkzeug.utils import secure_filename
 # current_user gets the current User info from the database
 from flask_login import login_user, login_required, current_user 
  
+
+
 # importing databases 
 # import the flaskblog folder and from models.py 
 from app.models import User, Posts 
@@ -19,8 +23,8 @@ userinfo = Blueprint('userinfo', __name__)
  
 # why not .forms? Beacuse it is an class and needs "()" brackets
 from app.userinfo.forms import (RegistrationForm, LoginForm)
- 
-  
+
+
 
 '''
 # todo turn into a database why is there no post number like 1st post ever posted in general etc?
@@ -34,6 +38,10 @@ posts = {
 '''
 
 
+
+
+
+
 # get data from wtf forms 
 # username = form.username.data
 
@@ -44,7 +52,6 @@ def home():
     # .query.all() means I get all info from the database.
     Posts_db = Posts.query.all() 
     # All databases are an list    
-     
     return render_template('home.html', Posts_db=Posts_db, title='home')
 
 
@@ -52,9 +59,13 @@ def home():
 def profile(username): 
     # use this line.  
     username = User.query.filter_by(username=username).first_or_404()
-    profile_title = 'profile/'+'username'
     
-    return render_template('profile.html', title=profile_title, username=username)
+    return render_template('profile.html', title='profile', username=username)
+
+
+
+
+
 
 
 
