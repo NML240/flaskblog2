@@ -1,0 +1,19 @@
+<!-- This is the /"profile/<string:username>/update". route --> 
+    {% extends "layout.html" %}
+ 
+    <!-- title is post -->
+    {% block title %}  {{title}}  {% endblock title %} 
+        
+    <!--should block content have a different name?  -->
+    {% block content %} 
+        <!-- Once you get the error message from ( "_formhelpers.html" import render_field) , you use novalidate to 
+        get the error message from wtf forms and makes it show up on the screen. %} -->
+        <!-- @postinfo.route("/post/edit/<int:post_id>", methods = ['POST', 'GET'] -->
+        <form novalidate action="/edit_profle" id="/edit_profle_forms" method="POST"> 
+            <!-- Make the secret key work -->
+            {{form.csrf_token}} 
+            form.password
+            form.picture
+            <h1> add profile image upload do I need edit </h1>
+            <h1> todo delete profile button  </h1> 
+            <button type="update_button"> update </button> 

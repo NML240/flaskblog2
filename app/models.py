@@ -16,7 +16,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     hashed_password = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    profile_pic = db.Column(db.LargeBinary, nullable=False)
+    profilepicture = db.Column(db.LargeBinary, nullable=False, default='default.jpg')
     # If I want to link the Posts database to the User database I can go Posts.user.id
     # I think I need a column from the Posts database. 
     # I think I can link the User database to the Posts. I can go User.user.id. I get the Posts id. 

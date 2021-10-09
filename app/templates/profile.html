@@ -5,13 +5,18 @@
 {% block title %}  {{title}}  {% endblock title %} 
     
 <!-- Have all the user posts -->
+<!-- Should I name it different then block content? -->
 {% block content %}
-        <img src="img_girl.jpg" alt="Girl in a jacket"> 
-        {% if current_user.is_authenticated %} 
-                <h1> todo delete profile button  </h1>         
+        <!--before random image <img src="img_girl.jpg" alt="Girl in a jacket"> -->
+        <!-- Now image from the database -->
+        {{ image_file }}   
+        {% if current_user.is_authenticated and current_user.username == username %}       
+                <!-- @userinfo.route("/profile/<string:username>/update_profile", methods = ['POST', 'GET']) -->
+                <!-- start with "{{ }}". Whenever there is a "/" replace it with a comma. Example <string:username replace with a variable from the database. -->
+                 <h2> <a href="{{ 'url_for ('userinfo.profile', username=username.username, username.update_profile) }}"> update_profile info </a> </h2>
         {% endif %}
- 
-                {{ (username.username) }}
+                 <!-- List of all the postinfo of a user -->
+                {{ (username) }}
                 {% for column in username.posts %}
                         {{ (column.email) }}
                         {{ (column.title) }}

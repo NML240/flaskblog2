@@ -1,9 +1,12 @@
 # Register forms 
 from flask_wtf import FlaskForm
-from wtforms import TextField, BooleanField, PasswordField, StringField, TextAreaField
-from wtforms.validators import DataRequired, Length
+from wtforms import TextField, BooleanField, PasswordField, StringField, TextAreaField 
+from wtforms import validators
+from wtforms.fields.simple import FileField
+from wtforms.validators import DataRequired, Length 
+from flask_wtf.file import FileField, FileAllowed  
 
-# what does Flaskform do?
+#should I improve wrf forms to more modern wtforms stlye?
 class RegistrationForm(FlaskForm):
     username = StringField('Username',validators=
     [
@@ -31,12 +34,17 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    #'todo implement Username_or_email'
+    # 'todo implement Username_or_email'
     username = StringField('Username', validators=[DataRequired('Username is required')],)  
     password = PasswordField('Password', validators=[DataRequired('Password is required'),])
-
+    
 
 class Postform(FlaskForm):
     title = StringField('title', validators=[DataRequired('title is required')],)  
     content = TextAreaField('content', validators=[DataRequired('content is required')],) # need better phrasing then 'content is required'
-    
+
+class UpdateProfileForm(FlaskForm):   
+    password = PasswordField('Password', [validators.Length(min=4, max=25)]) 
+    # does 'profilepicture' below need to match the database?
+    picture = FileField('profilepicture', validators=[FileAllowed(['jpg', 'png'])])  
+ 

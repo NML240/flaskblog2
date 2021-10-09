@@ -1,14 +1,11 @@
+# Continue 25:31 https://www.youtube.com/watch?v=803Ei2Sq-Zs
 import os
 # use variables in routes 
 from flask import Blueprint, flash, session, render_template, redirect,  request, url_for
-
 # make file uploading possible
 from werkzeug.utils import secure_filename
 # current_user gets the current User info from the database
 from flask_login import login_user, login_required, current_user 
- 
-
-
 # importing databases 
 # import the flaskblog folder and from models.py 
 from app.models import User, Posts 
@@ -16,15 +13,10 @@ from app.models import User, Posts
 from app import db 
 # make bcrypt and db work 
 import bcrypt
-
 # make @userinfo work from userinfo folder 
 userinfo = Blueprint('userinfo', __name__)
-
- 
 # why not .forms? Beacuse it is an class and needs "()" brackets
-from app.userinfo.forms import (RegistrationForm, LoginForm)
-
-
+from app.userinfo.forms import (RegistrationForm, LoginForm, UpdateProfileForm)
 
 '''
 # todo turn into a database why is there no post number like 1st post ever posted in general etc?
@@ -37,14 +29,8 @@ posts = {
 }
 '''
 
-
-
-
-
-
 # get data from wtf forms 
 # username = form.username.data
-
 # read the post
 @userinfo.route("/")
 @userinfo.route("/home")
@@ -54,21 +40,26 @@ def home():
     # All databases are an list    
     return render_template('home.html', Posts_db=Posts_db, title='home')
 
-
 @userinfo.route("/profile/<string:username>", methods = ['POST', 'GET'])
-def profile(username): 
-    # use this line.  
-    username = User.query.filter_by(username=username).first_or_404()
-    
-    return render_template('profile.html', title='profile', username=username)
+def profile(username):  
+        username = User.query.filter_by(username=username).first_or_404()
+        # Why can't I use "profilepicture = form.profilepicture.data" for the line below?
+        # Taking current_user image in the database from my folder and storing it as a variable. profile pic is from the database.
+        image_file = url_for('static', filename='profile_pics/' + current_user.profilepicture)
+        return render_template('profile.html', title='profile', username=username, image_file=image_file)
 
-
-
-
-
-
-
-
+@userinfo.route("/profile/<string:username>/update_profile", methods = ['POST', 'GET'])
+def profile(username):  
+    form = UpdateProfileForm 
+    if request.method == 'POST' and form.validate(): 
+            password = form.password.data
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            # Can the line below have a _ in it?
+            profilepicture = form.profilepicture.data
+            user_db = User(hashed_password=hashed_password,profilepicture=profilepicture)
+            db.session.add(user_db)
+            db.session.commit()
+            return render_template('update_profile.html', title='update_profile', username=username, form=form)
 
 
 @userinfo.route("/about")
@@ -148,51 +139,3 @@ def logoff():
                   
 
 
-
-'''
-@userinfo.route("/post/new")
-@login_required
-# why do I need to link to the name of the function in the html. Ex new_post 
-def new_post(): 
-    form = Postform()
-    if request.method == 'POST' and form.validate():
-        title = form.title.data
-        content = form.content.data
-        # current_user variable gives me the current database information of the User.
-        # current_user.id gives me the id of the User column id.
-        # This works because I am using the user.id for the foreign key in the Post database.                 
-        db_post_info = Posts(title=title, content=content, user_id=current_user.id)
-        db.session.add(db_post_info)  
-        db.session.commit()
-        flash('You have posted successfully')
-        return redirect(url_for('userinfo.home'))
-    return render_template('new_post.html',title='new_post', form=form)
-
-# gives you ability to click on posts from home route and see the posts
-# create the post/number route
-# gets the posts number
-@userinfo.route("/post/<int:post_id>")
-def post(post_id):
-    # Pass on the Posts database to the post_number variable. If the post doesn't exist get 404 error
-    # The reason I don't use Posts.id is because I want a certain "Posts database id". 
-    post_id = Posts.query.get_or_404(post_id)
-    posts = 'post/'+'post_number'
-
-    return render_template('post.html', post_id=post_id, title=posts)
-
-
-# The reason you have post_id is because you only want to edit 1 post at a time. 
-# If you leave out post_id you would edit every posts. 
-@userinfo.route("/post/edit/<int:post_id>", methods = ['POST', 'GET'])
-# edit/update posts
-@login_required
-def edit_post(): 
-    form = Postform() 
-    if request.method == 'POST' and form.validate(): 
-        title = form.tilte.data
-        content = form.content.data 
-        db.commit()
-        # todo make it so only the original poster can edit there post
-        return render_template('edit.html', title='edit_post', form=form) 
-
-'''
