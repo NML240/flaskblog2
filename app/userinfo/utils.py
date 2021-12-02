@@ -69,7 +69,7 @@ def send_reset_email(user):
     # Absolute import is  https://example.com/my-page relative URL is  /my-page 
     # body gives the body of the message, iow the entire message 
     # link to reset_password.html               
-    msg.body() = f'''To reset your password, visit the following link:
+    msg.body = f'''To reset your password, visit the following link:
     {url_for('reset_password_token', token=token, _external=True)}
     If you did not make this request then simply ignore this email and no changes will be made. 
     '''
