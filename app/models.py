@@ -1,13 +1,22 @@
 # from flaskblog folder in __init__.py
 from enum import unique
 from datetime import datetime
-from app import db 
+
+from flask_login.utils import _secret_key, decode_cookie
+from app import db, app
 from sqlalchemy import Column, Integer, String, LargeBinary
 from flask_login import UserMixin, LoginManager
+# itsdangergous... gives a time sensitive message 
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 # https://stackoverflow.com/questions/63231163/what-is-the-usermixin-in-flask
 
 # one to many relationship between both databases
+
+
+
+
+
 
 # The One relationship
 class User(UserMixin, db.Model):
@@ -16,11 +25,20 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     hashed_password = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    profilepicture = db.Column(db.LargeBinary, nullable=False, default='default.jpg')
+    confirmation_email = db.Column(db.Boolean, default=False, nullable=False)
+    
+    #profilepicture = db.Column(db.LargeBinary, nullable=False)
+    # profilepicture = db.Column(db.LargeBinary, nullable=False, default='default.jpg')
     # If I want to link the Posts database to the User database I can go Posts.user.id
     # I think I need a column from the Posts database. 
     # I think I can link the User database to the Posts. I can go User.user.id. I get the Posts id. 
     posts = db.relationship('Posts', backref='user', lazy=True)
+    # 1800 sec = 30 min 
+    # Could this be in routes.py?
+
+  
+    
+    
 
     # what does this do?
     def __repr__(self):
@@ -50,4 +68,5 @@ def load_user(user_id):
    return User.query.get(user_id)
 
 
-   
+
+ 

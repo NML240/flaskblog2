@@ -1,5 +1,5 @@
-<!-- This is the /"profile/<string:username>/update". route --> 
-    {% extends "layout.html" %}
+<!--upload and update profile pics-->
+        {% extends "layout.html" %}
  
     <!-- title is post -->
     {% block title %}  {{title}}  {% endblock title %} 
@@ -9,11 +9,15 @@
         <!-- Once you get the error message from ( "_formhelpers.html" import render_field) , you use novalidate to 
         get the error message from wtf forms and makes it show up on the screen. %} -->
         <!-- @postinfo.route("/post/edit/<int:post_id>", methods = ['POST', 'GET'] -->
-        <form novalidate action="/edit_profle" id="/edit_profle_forms" method="POST"> 
-            <!-- Make the secret key work -->
+        <!-- enctype= is for uploads. Used if using filefield "multipart/form-data" -->   
+        <form novalidate action="/edit_profle" id="/edit_profle_forms"  enctype="multipart/form-data"  method="POST"> </form> 
+        <!-- makes it so you can only accept certain files --> 
+        <input type="file" name="upload" accept=" '.jpg', '.png' ">
+            <!-- Make the secret key work for forms -->
             {{form.csrf_token}} 
-            form.password
-            form.picture
-            <h1> add profile image upload do I need edit </h1>
-            <h1> todo delete profile button  </h1> 
+            {{ form.update_password }}
+            <!-- {{l}} add's the profile image upload -->
+            <h1> todo delete profile button </h1> 
             <button type="update_button"> update </button> 
+
+            

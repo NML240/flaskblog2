@@ -9,7 +9,8 @@
 {% block content %}
         <!--before random image <img src="img_girl.jpg" alt="Girl in a jacket"> -->
         <!-- Now image from the database -->
-        {{ image_file }}   
+        
+            
         {% if current_user.is_authenticated and current_user.username == username %}       
                 <!-- @userinfo.route("/profile/<string:username>/update_profile", methods = ['POST', 'GET']) -->
                 <!-- start with "{{ }}". Whenever there is a "/" replace it with a comma. Example <string:username replace with a variable from the database. -->
