@@ -8,7 +8,7 @@
 {% block content %}
 <!-- Once you get the error message from ( "_formhelpers.html" import render_field) , you use novalidate to 
      get the error message from wtf forms and makes it show up on the screen. %} -->
-<form novalidate action="" id="new_post_or_edit_post" method="POST">  
+<form validate action="" id="new_post_or_edit_post" method="POST">  
         <!-- Make the secret key work -->
         {{ form.csrf_token }}
         {{ render_field(form.title) }}

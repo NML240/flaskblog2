@@ -2,12 +2,16 @@
  <!-- title is flashblog -->
 {% block title %} {{title}} {% endblock title %} 
 {% block post_content %}    
-   
+
+ 
+
     {% for column in Posts_db %}
         <!--  the line url_for... is = to  ("/post/<int:post_id>") in routes.py-->
         <!--  why do I need post_id = row.id'? Also why  row.id instead of posts.id?-->    
         <h2> <a href="{{ url_for ('postinfo.post', post_id = column.id) }}"> {{column.title}} </a> </h2>
     {{ column.content}}
-
     {% endfor %}
+ 
+
+    
 {% endblock post_content %}

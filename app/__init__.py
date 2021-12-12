@@ -8,10 +8,8 @@ from flask import Flask
 # make SQLAlchemy work 
 from flask_sqlalchemy import SQLAlchemy
 # make login work
-from flask_login import LoginManager# user_loaded_from_header
-
-
-
+from flask_login import LoginManager 
+# from flask.ext.login import LoginManager
 from flask_mail import Mail
 
 app = Flask(__name__)
@@ -30,6 +28,8 @@ csrf = CSRFProtect()
 
 # make mail work?
 mail = Mail()
+# make it so @login_required sends you to the login page. 
+login_manager.login_view = 'login'
 
 # imports config from config.py
 from app.config import Config

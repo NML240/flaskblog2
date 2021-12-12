@@ -21,13 +21,13 @@ from werkzeug.utils import secure_filename
 
 
 
-from app.userinfo.utils import send_registration_email
+from app.userinfo.utils import send_account_registration_email 
 # make @userinfo work from userinfo folder 
 userinfo = Blueprint('userinfo', __name__)
 
  
 
-'''
+
 # todo turn into a database why is there no post number like 1st post ever posted in general etc?
 posts = {   
     "username": "author",
@@ -36,7 +36,7 @@ posts = {
     "Content": "This is a post content 1",
     "date_posted": "March 17 2021" 
 }
-'''
+
 
 # get data from wtf forms 
 # username = form.username.data
@@ -45,11 +45,10 @@ posts = {
 @userinfo.route("/home")
 def home():
     # .query.all() means I get all info from the database.   
+    #if there are no posts in the database
     Posts_db = Posts.query.all() 
-    return render_template('home.html', Posts_db=Posts_db, title='home')
-
-    
-''' 
+    return render_template('home.html', Posts_db=Posts_db, title='home') 
+'''     
 # Check 1st 512 bytes and makes sure it is the correct extension.
 # By extension I just mean .jpg etc
 def validate_image(stream):
@@ -114,7 +113,7 @@ def profile(username):
 def update_profile(username):  
     form = UpdateAccountForm 
     
-    if form.validate_on_submit:
+    if form.validate_on_submit():
         password = form.password.data
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         confirm_password = form.confirm_password
@@ -168,9 +167,13 @@ def register():
         if confirm_password is None:    
             flash("Please fill in the confirm password field")
 
-       
-        user = User.query.filter_by(username=username).first()
-        send_registration_email(user)
+
+        user = User.query.filter_by(email=email).first()
+        '''
+        if user is None:
+            return print("user is none") 
+        '''
+        send_account_registration_email(user)
         flash("An email has been sent with instructions to your email to create the password")     
         # didn't I already declare password?
       
@@ -195,7 +198,6 @@ def login():
     # if the user is logged in make it so they can't go to the login page. 
     if current_user.is_authenticated:
         return redirect(url_for(('userinfo.home')))    
-    
     form = LoginForm()
     if form.validate_on_submit():
         email = form.email.data
@@ -210,16 +212,23 @@ def login():
         # query.filter_by(...).first gets the first result in the database query
         # check if username and password inputted in login forms matches the database
         # db_username = User.query.filter_by(username=username).first()
-        email = form.email.data 
-        user = User.query.filter_by('email=email').first()
+       
+        user = User.query.filter_by(email=email).first()
         
+
         # Using bcrypt compare password from the form vs the current user's hashed password from the database
         # if user exists and check passwords
         if user and bcrypt.checkpw(password.encode('utf-8'), user.hashed_password):
             #log the user in remember is a boolean. Where do I get form.remember.data?
             flash('You have logged in successfully') 
             login_user(user, remember=form.remember.data)
-            return redirect(url_for(('userinfo.home')))
+            # @login_required redirects to the login page no matter the route in the url. 
+            # To prevent seeing the original typing use the code below.
+            
+            # get the information typed from the url learn more about this line
+            words_typed_in_url = request.args.get('next') 
+            # else runs when = None
+            return redirect(words_typed_in_url) if words_typed_in_url else redirect(url_for('userinfo.home'))
         return render_template('login.html', title='login', form=form)
         
         

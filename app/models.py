@@ -3,7 +3,7 @@ from enum import unique
 from datetime import datetime
 
 from flask_login.utils import _secret_key, decode_cookie
-from app import db, app
+from app import db
 from sqlalchemy import Column, Integer, String, LargeBinary
 from flask_login import UserMixin, LoginManager
 # itsdangergous... gives a time sensitive message 

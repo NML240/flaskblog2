@@ -10,7 +10,7 @@
         get the error message from wtf forms and makes it show up on the screen. %} -->
         <!-- @postinfo.route("/post/edit/<int:post_id>", methods = ['POST', 'GET'] -->
         <!-- enctype= is for uploads. Used if using filefield "multipart/form-data" -->   
-        <form novalidate action="/edit_profle" id="/edit_profle_forms"  enctype="multipart/form-data"  method="POST"> </form> 
+        <form validate action="/edit_profle" id="/edit_profle_forms"  enctype="multipart/form-data"  method="POST"> </form> 
         <!-- makes it so you can only accept certain files --> 
         <input type="file" name="upload" accept=" '.jpg', '.png' ">
             <!-- Make the secret key work for forms -->

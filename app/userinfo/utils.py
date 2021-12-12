@@ -15,26 +15,23 @@ userinfo = Blueprint('userinfo', __name__)
 
 # get_reset_token = create_token
 # def verify_reset_token(token) = verify_token 
-# 
-# 
-
-
-
-
 def create_token(self, expires_sec=1800):
     # Serializer gives 
     s = Serializer(app.conf['secret_key'], expires_sec) 
     #gives randomly assigned token as long as less then 30 min   
     return s.dumps({'user_id': self.id}).decode('utf-8')
     
-# google a try and can someone explain the function below?
+
+    
+# why @staticmethod?
 @staticmethod
 def verify_token(token):
     s = Serializer(app.config['SECRET_KEY'])
     try:
         user_id = s.loads(token)['user_id']
     except:
-        return None
+        return None 
+        # return print("testing")
     return User.query.get(user_id)
 
 
@@ -42,22 +39,23 @@ def verify_token(token):
 
 # why user in the function?\
 # because I want a specific user. Shouldn't it be User?
-def send_registration_email(user):
+def send_account_registration_email(user):
     # the function creates the randomly generated token
-    # why user?
+    # why user? 
     token = user.create_token()
     # 'Email registration' the title
     msg = Message ('Email registration',
         sender='noreply@demo.com', 
         recipients=[user.email]) 
     msg.body = f'''To complete the registration please click on the link:
-    {url_for('userinfo.register_email', token=token, _external=True)}
+    {url_for('userinfo.verified_email', token=token, _external=True)}
     If you did not make this request then simply ignore this email and no changes will be made. 
     ''' 
     mail.send(msg)
 
 
-def send_reset_email(user):  
+
+def send_reset_password_email(user):  
     # get the function from models.py
     token = user.create_token()
     # What is Message and sender and recipients mssg.body? and f''' ''' string and _external=True?
@@ -70,23 +68,16 @@ def send_reset_email(user):
     # body gives the body of the message, iow the entire message 
     # link to reset_password.html               
     msg.body = f'''To reset your password, visit the following link:
-    {url_for('reset_password_token', token=token, _external=True)}
+    {url_for('userinfo.verified_email', token=token, _external=True)}
     If you did not make this request then simply ignore this email and no changes will be made. 
     '''
     mail.send(msg)
 
 
-
-
-
-
-
-
-
-# verify the users email
+# verify the users email or after you clicked on the email from thev recieved email
 # better name for function?
-@userinfo.route("/receive_token_for_registration<token>", methods = ['POST', 'GET'])
-def receive_token_for_registration(token):
+@userinfo.route("/verified_email<token>", methods = ['POST', 'GET'])
+def verify_email(token):
     # Why User?
     # checks for errors  
     user = User.verify_token(token)
@@ -95,25 +86,14 @@ def receive_token_for_registration(token):
         flash('That is an invalid or expired token')
         # correct?
         return redirect(url_for('userinfo.home'))
-    # make confirmation_email true
-    user = User.verify_token(token)
+    # make confirmation_email True
     db_info = user.confirmation_email = True  
     db.session.add(db_info)
     db.session.commit()
+    return render_template('verified_email.html', title = 'verified email')
 
-    return render_template('received_registration_email__token.html', title = 'received email registration token')
 
 # Code below resets your email
-
-#explain this function?
-
- 
-
-
-
-
-
-
 # email the resetted password
 #better name
 @userinfo.route("/request_reset_password", methods = "POST, GET" )
@@ -122,14 +102,14 @@ def request_reset_password():
     if current_user.is_authenticated:
         return redirect(url_for(('userinfo.home')))
     form = ResetPasswordTokenForm
-    if form.validate_on_submit:
+    if form.validate_on_submit():
         # get email from the database , better name?
         email = form.email.data
         if email is None:      
-            flash("Please fill in the email field")       
+            flash("Please fill in the email field")
+        email = form.email.data           
         user = User.query.filter_by(email=email).first()
-        
-        send_reset_email(user)
+        send_reset_password_email(user) 
         flash("An email has been sent with instructions to your email to reset the password")    
         return render_template('request_reset_password_token.html', title='request reset password', form=form)
 

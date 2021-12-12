@@ -11,7 +11,8 @@ class Config:
     DEBUG = False
     TESTING = False
     # connect to your mail server not your email address
-    MAIL_SERVER = 'localhost' 
+    # confused by localhost
+    # MAIL_SERVER = 'localhost' 
     #depends on email provider
     MAIL_PORT =  None 
     # used for security purposes depend on email provider
