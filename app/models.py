@@ -25,6 +25,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     hashed_password = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    #recieved_confirmation email
     confirmation_email = db.Column(db.Boolean, default=False, nullable=False)
     
     #profilepicture = db.Column(db.LargeBinary, nullable=False)

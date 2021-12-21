@@ -143,7 +143,7 @@ def about():
 
 
 
-
+ # needs a token in routes
 @userinfo.route("/register", methods = ['POST', 'GET'])
 def register():
     
@@ -168,23 +168,32 @@ def register():
             flash("Please fill in the confirm password field")
 
 
-        user = User.query.filter_by(email=email).first()
+    
         '''
         if user is None:
             return print("user is none") 
         '''
-        send_account_registration_email(user)
+        
+        
         flash("An email has been sent with instructions to your email to create the password")     
         # didn't I already declare password?
       
         # login user. Should I use next or login?
         # get data form wtf forms iow get user inputted data from the forms
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gesalt())
+        # password = userInput
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         
         user_db = User(username=username, email=email, hashed_password=hashed_password)
         db.session.add(user_db)
         db.session.commit()
-                                         
+        # needs a token
+        user = User.query.filter_by(email=email).first()
+        send_account_registration_email(user)
+                                        
+
+
+
+
         flash('You have almost registered successfully. Pleae click the link in your email to complete the registeration.')
         return redirect(url_for('userinfo.login'))
     else:

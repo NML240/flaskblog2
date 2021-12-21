@@ -39,14 +39,14 @@ def verify_token(token):
 
 # why user in the function?\
 # because I want a specific user. Shouldn't it be User?
-def send_account_registration_email(user):
+def send_account_registration_email(users_email):
     # the function creates the randomly generated token
     # why user? 
-    token = user.create_token()
+    token = users_email.create_token()
     # 'Email registration' the title
     msg = Message ('Email registration',
         sender='noreply@demo.com', 
-        recipients=[user.email]) 
+        recipients=[users_email.email]) 
     msg.body = f'''To complete the registration please click on the link:
     {url_for('userinfo.verified_email', token=token, _external=True)}
     If you did not make this request then simply ignore this email and no changes will be made. 
@@ -55,23 +55,7 @@ def send_account_registration_email(user):
 
 
 
-def send_reset_password_email(user):  
-    # get the function from models.py
-    token = user.create_token()
-    # What is Message and sender and recipients mssg.body? and f''' ''' string and _external=True?
-    # when passing into a f string use 1 "{}" curly brace instead of 2 "{{}}"
-    msg = Message('Password Reset Request', 
-                    sender='noreply@demo.com', 
-                    recipients=[user.email])             
-    # _external – if set to True, an absolute URL is generated. Server address can be changed via 
-    # Absolute import is  https://example.com/my-page relative URL is  /my-page 
-    # body gives the body of the message, iow the entire message 
-    # link to reset_password.html               
-    msg.body = f'''To reset your password, visit the following link:
-    {url_for('userinfo.verified_email', token=token, _external=True)}
-    If you did not make this request then simply ignore this email and no changes will be made. 
-    '''
-    mail.send(msg)
+
 
 
 # verify the users email or after you clicked on the email from thev recieved email
@@ -87,10 +71,29 @@ def verify_email(token):
         # correct?
         return redirect(url_for('userinfo.home'))
     # make confirmation_email True
-    db_info = user.confirmation_email = True  
+    confirmation_email = True  
+    db_info = User(confirmation_email=confirmation_email)  
     db.session.add(db_info)
     db.session.commit()
     return render_template('verified_email.html', title = 'verified email')
+
+def send_reset_password_email(user):  
+    # get the function from models.py
+    token = user.create_token()
+    # What is Message and sender and recipients mssg.body? and f''' ''' string and _external=True?
+    # when passing into a f string use 1 "{}" curly brace instead of 2 "{{}}"
+    msg = Message('Password Reset Request', 
+        sender='noreply@demo.com', 
+        recipients=[user.email])             
+    # _external – if set to True, an absolute URL is generated. Server address can be changed via 
+    # Absolute import is  https://example.com/my-page relative URL is  /my-page 
+    # body gives the body of the message, iow the entire message 
+    # link to reset_password.html               
+    msg.body = f'''To reset your password, visit the following link:
+    {url_for('userinfo.verified_email', token=token, _external=True)}
+    If you did not make this request then simply ignore this email and no changes will be made. 
+    '''
+    mail.send(msg)
 
 
 # Code below resets your email
@@ -107,9 +110,9 @@ def request_reset_password():
         email = form.email.data
         if email is None:      
             flash("Please fill in the email field")
-        email = form.email.data           
+              
         user = User.query.filter_by(email=email).first()
-        send_reset_password_email(user) 
+        send_reset_password_email(user)
         flash("An email has been sent with instructions to your email to reset the password")    
         return render_template('request_reset_password_token.html', title='request reset password', form=form)
 
@@ -146,4 +149,4 @@ def reset_password_token(token):
         # login user. Should I use next or login?                                      
         flash('Your password has been reset. You can now login Successfully.')
         return redirect(url_for('userinfo.login'))
-    return render_template('.html', title='reset password', form=form) 
+    return render_template('reset_password.html', title='reset password', form=form) 

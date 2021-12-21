@@ -11,7 +11,7 @@ from app.models import User
 # should I improve wff forms to more modern wtforms stlye?
 
 
-
+# Also use Registrationform in verified.html
 class RegistrationForm(FlaskForm):
     username = StringField('Username',validators=
     [
@@ -22,7 +22,7 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=
     [
     DataRequired('Email is required'),
-    Length(min=4, max=25, message='Must be between 4 and 25 characters'),
+    Length(min=4, max=35, message='Must be between 4 and 25 characters'),
     ])
 
 
@@ -82,14 +82,14 @@ class ResetPasswordTokenForm(FlaskForm):
     # Could the function below be in routes.py?
 
     # I want an email that does exist
-    
+    '''
     # check if the email does not exist so you can throw an error 
     def validate (self, email):
         email = User.query.filter_by(email=email.data.first())
         # is None just checks if it is none
         if email is None: 
             raise ValidationError ("You have entered a email that does not exist. Please register a valid email.")
-
+    ''' 
 class UpdateAccountForm(FlaskForm):
     password = PasswordField('Password', validators=
     [
@@ -101,4 +101,6 @@ class UpdateAccountForm(FlaskForm):
     [
     DataRequired('Does not match password'),
     ])
+
+
 
