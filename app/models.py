@@ -3,11 +3,13 @@ from enum import unique
 from datetime import datetime
 
 from flask_login.utils import _secret_key, decode_cookie
-from app import db
+from app import db, app
 from sqlalchemy import Column, Integer, String, LargeBinary
 from flask_login import UserMixin, LoginManager
 # itsdangergous... gives a time sensitive message 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+ 
+ 
 
 # https://stackoverflow.com/questions/63231163/what-is-the-usermixin-in-flask
 
@@ -38,7 +40,26 @@ class User(UserMixin, db.Model):
     # Could this be in routes.py?
 
   
-    
+    # get_reset_token = create_token
+    # def verify_reset_token(token) = verify_token 
+    def create_token(self, expires_sec=1800):
+        # Serializer gives 
+        s = Serializer(app.config['SECRET_KEY'], expires_sec) 
+        #gives randomly assigned token as long as less then 30 min   
+        return s.dumps({'user_id': self.id}).decode('utf-8')
+        
+
+        
+    # why @staticmethod?
+    @staticmethod
+    def verify_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token)['user_id']
+        except:
+            return None 
+            # return print("testing")
+        return User.query.get(user_id)    
     
 
     # what does this do?

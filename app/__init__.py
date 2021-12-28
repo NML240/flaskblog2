@@ -56,5 +56,5 @@ def create_app(config_class=Config):
     app.register_blueprint(postinfo)
     return app 
  
-# from app.models import User 
+ 
 

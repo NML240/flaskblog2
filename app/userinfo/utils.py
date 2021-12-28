@@ -1,52 +1,33 @@
 from flask import Flask, Blueprint, flash, render_template, request, redirect, url_for, abort, send_from_directory, render_template, session
 from flask_login import login_user, login_required, current_user 
-from app import db, mail, app
+from app import db, mail 
 # make bcrypt and db work 
 import bcrypt
 from flask_mail import Message
 from app.userinfo.forms import ResetPasswordTokenForm ,UpdateAccountForm  
 # itsdangergous... gives a time sensitive message 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-# import for the function verify_token
-from app.models import User 
 
+from app.models import User 
+from app.userinfo.forms import RegistrationForm
 
 userinfo = Blueprint('userinfo', __name__)
 
-# get_reset_token = create_token
-# def verify_reset_token(token) = verify_token 
-def create_token(self, expires_sec=1800):
-    # Serializer gives 
-    s = Serializer(app.conf['secret_key'], expires_sec) 
-    #gives randomly assigned token as long as less then 30 min   
-    return s.dumps({'user_id': self.id}).decode('utf-8')
-    
-
-    
-# why @staticmethod?
-@staticmethod
-def verify_token(token):
-    s = Serializer(app.config['SECRET_KEY'])
-    try:
-        user_id = s.loads(token)['user_id']
-    except:
-        return None 
-        # return print("testing")
-    return User.query.get(user_id)
 
 
 
 
-# why user in the function?\
-# because I want a specific user. Shouldn't it be User?
-def send_account_registration_email(users_email):
+
+# why user in the function?
+# because I want a specific user. Shouldn't it be User? No because classes work 
+def send_account_registration_email(user):
     # the function creates the randomly generated token
-    # why user? 
-    token = users_email.create_token()
+    # why user? Because token needs user to access the class
+    token = user.create_token()
     # 'Email registration' the title
     msg = Message ('Email registration',
         sender='noreply@demo.com', 
-        recipients=[users_email.email]) 
+        recipients=[user.email]) 
     msg.body = f'''To complete the registration please click on the link:
     {url_for('userinfo.verified_email', token=token, _external=True)}
     If you did not make this request then simply ignore this email and no changes will be made. 
@@ -61,21 +42,26 @@ def send_account_registration_email(users_email):
 # verify the users email or after you clicked on the email from thev recieved email
 # better name for function?
 @userinfo.route("/verified_email<token>", methods = ['POST', 'GET'])
-def verify_email(token):
+def verified_email(token):
     # Why User?
-    # checks for errors  
-    user = User.verify_token(token)
-    # explain the code 
-    if user is None:
-        flash('That is an invalid or expired token')
-        # correct?
-        return redirect(url_for('userinfo.home'))
-    # make confirmation_email True
-    confirmation_email = True  
-    db_info = User(confirmation_email=confirmation_email)  
-    db.session.add(db_info)
-    db.session.commit()
-    return render_template('verified_email.html', title = 'verified email')
+    # checks for errors 
+
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+
+        user = User.verify_token(token)
+        # explain the code 
+        if user is None:
+            flash('That is an invalid or expired token')
+            # correct?
+            return redirect(url_for('userinfo.home'))
+        # make confirmation_email True
+        confirmation_email = True  
+        db_info = User(confirmation_email=confirmation_email)  
+        db.session.add(db_info)
+        db.session.commit()
+        return render_template('verified_email.html', title = 'verified email')
 
 def send_reset_password_email(user):  
     # get the function from models.py
@@ -90,7 +76,7 @@ def send_reset_password_email(user):
     # body gives the body of the message, iow the entire message 
     # link to reset_password.html               
     msg.body = f'''To reset your password, visit the following link:
-    {url_for('userinfo.verified_email', token=token, _external=True)}
+    {url_for('userinfo.request.reset_password', token=token, _external=True)}
     If you did not make this request then simply ignore this email and no changes will be made. 
     '''
     mail.send(msg)

@@ -143,7 +143,6 @@ def about():
 
 
 
- # needs a token in routes
 @userinfo.route("/register", methods = ['POST', 'GET'])
 def register():
     
@@ -186,7 +185,7 @@ def register():
         user_db = User(username=username, email=email, hashed_password=hashed_password)
         db.session.add(user_db)
         db.session.commit()
-        # needs a token
+    
         user = User.query.filter_by(email=email).first()
         send_account_registration_email(user)
                                         

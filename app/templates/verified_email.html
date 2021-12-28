@@ -8,7 +8,7 @@
     {%block content%}
     <!-- Once you get the error message from ( "_formhelpers.html" import render_field) , you use novalidate to 
      get the error message from wtf forms and makes it show up on the screen. %} -->
-        <form validate="" id="register" method="POST"> 
+        <form validate="" id="verified_email" method="POST"> 
             <!-- Make the secret key work -->
             {{form.csrf_token}}
             <h1> You have clicked on the link in your email and now succesfully registered.  </h1>
