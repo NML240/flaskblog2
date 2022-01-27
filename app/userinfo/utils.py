@@ -11,13 +11,6 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from app.models import User 
 from app.userinfo.forms import RegistrationForm
 
-userinfo = Blueprint('userinfo', __name__)
-
-
-
-
-
-
 # why user in the function?
 # because I want a specific user. Shouldn't it be User? No because classes work 
 def send_account_registration_email(user):
@@ -39,29 +32,7 @@ def send_account_registration_email(user):
 
 
 
-# verify the users email or after you clicked on the email from thev recieved email
-# better name for function?
-@userinfo.route("/verified_email<token>", methods = ['POST', 'GET'])
-def verified_email(token):
-    # Why User?
-    # checks for errors 
 
-    
-    form = RegistrationForm()
-    if form.validate_on_submit():
-
-        user = User.verify_token(token)
-        # explain the code 
-        if user is None:
-            flash('That is an invalid or expired token')
-            # correct?
-            return redirect(url_for('userinfo.home'))
-        # make confirmation_email True
-        confirmation_email = True  
-        db_info = User(confirmation_email=confirmation_email)  
-        db.session.add(db_info)
-        db.session.commit()
-        return render_template('verified_email.html', title = 'verified email')
 
 def send_reset_password_email(user):  
     # get the function from models.py
@@ -76,63 +47,11 @@ def send_reset_password_email(user):
     # body gives the body of the message, iow the entire message 
     # link to reset_password.html               
     msg.body = f'''To reset your password, visit the following link:
-    {url_for('userinfo.request.reset_password', token=token, _external=True)}
+    {url_for('userinfo.request_reset_password', token=token, _external=True)}
     If you did not make this request then simply ignore this email and no changes will be made. 
     '''
     mail.send(msg)
 
 
-# Code below resets your email
-# email the resetted password
-#better name
-@userinfo.route("/request_reset_password", methods = "POST, GET" )
-def request_reset_password():
-    # if the user is logged in make so they can't go to the register page. 
-    if current_user.is_authenticated:
-        return redirect(url_for(('userinfo.home')))
-    form = ResetPasswordTokenForm
-    if form.validate_on_submit():
-        # get email from the database , better name?
-        email = form.email.data
-        if email is None:      
-            flash("Please fill in the email field")
-              
-        user = User.query.filter_by(email=email).first()
-        send_reset_password_email(user)
-        flash("An email has been sent with instructions to your email to reset the password")    
-        return render_template('request_reset_password_token.html', title='request reset password', form=form)
 
 
-# reset password after recieved the token in a email
-@userinfo.route("/reset_password/<token>", methods = "POST, GET" )
-def reset_password_token(token):
-    # if the user is logged in make so they can't go to the register page. 
-    # take a lot of the cod from register.
-    
-    if current_user.is_authenticated:
-        return redirect(url_for(('userinfo.home')))
-    form = UpdateAccountForm
-    if form.validate_on_submit():
-        # confused by adding User?
-        # User is the name of the 1st database
-        user = User.verify_token(token)
-        if user is None:
-            flash('That is an invalid or expired token', 'warning')
-            return redirect(url_for('request_reset_password'))    
-        password = form.password.data
-        if password is None:
-            flash("Please fill in the password field")
-        confirm_password = form.confirm_password.data
-        if confirm_password is None:    
-            flash("Please fill in the confirm password field")
-        # get data from wtf forms iow get user inputted data from the forms
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gesalt())
-        # update information already in the database 
-        # do I need add?
-        db_info = User(hashed_password=hashed_password)
-        db.session.add(user_password=db_info)
-        db.session.commit()
-        # login user. Should I use next or login?                                      
-        flash('Your password has been reset. You can now login Successfully.')
-        return redirect(url_for('userinfo.login'))
-    return render_template('reset_password.html', title='reset password', form=form) 

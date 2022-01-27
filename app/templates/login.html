@@ -5,7 +5,7 @@
 {% block title %}  {{title}}  {% endblock title %} 
 {% block content %}
 
-<form validate action="/login" id="login" method="POST">  
+<form validate action="" id="login" method="POST">  
         <!-- Make the secret key work -->
         {{ form.csrf_token }}
         {{ render_field(form.username) }}

@@ -5,7 +5,7 @@ from flask import Flask, Blueprint, flash, render_template, request, redirect, u
 # make file uploading possible
 from werkzeug.utils import secure_filename
 # current_user gets the current User info from the database
-from flask_login import login_user, login_required, current_user 
+from flask_login import login_user, login_required, current_user , logout_user
 # importing databases 
 # import the flaskblog folder and from models.py 
 from app.models import User, Posts 
@@ -16,18 +16,18 @@ import bcrypt
 from flask_mail import Message
 
 # why not .forms? Beacuse it is an class and needs "()" brackets
-from app.userinfo.forms import (RegistrationForm, LoginForm, UpdateAccountForm )
+from app.userinfo.forms import (RegistrationForm, LoginForm, UpdateAccountForm,ResetPasswordTokenForm ,UpdateAccountForm   )
 from werkzeug.utils import secure_filename
 
 
 
-from app.userinfo.utils import send_account_registration_email 
+from app.userinfo.utils import send_account_registration_email, send_reset_password_email
 # make @userinfo work from userinfo folder 
 userinfo = Blueprint('userinfo', __name__)
 
  
 
-
+''' 
 # todo turn into a database why is there no post number like 1st post ever posted in general etc?
 posts = {   
     "username": "author",
@@ -36,6 +36,104 @@ posts = {
     "Content": "This is a post content 1",
     "date_posted": "March 17 2021" 
 }
+'''
+
+
+
+
+# reset password after recieved the token in a email
+@userinfo.route("/reset_password/<token>", methods = ["POST, GET"] )
+def reset_password_token(token):
+    # if the user is logged in make so they can't go to the register page. 
+    # take a lot of the cod from register.
+    
+    if current_user.is_authenticated:
+        return redirect(url_for(('userinfo.home')))
+        
+    form = UpdateAccountForm
+    if form.validate_on_submit():
+        # confused by adding User?
+        # User is the name of the 1st database
+        user = User.verify_token(token)
+        if user is None:
+            flash('That is an invalid or expired token', 'warning')
+            return redirect(url_for('request_reset_password'))    
+        password = form.password.data
+        if password is None: 
+            flash("Please fill in the password field")
+        confirm_password = form.confirm_password.data
+        if confirm_password is None:    
+            flash("Please fill in the confirm password field")
+        # get data from wtf forms iow get user inputted data from the forms
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gesalt())
+        # update information already in the database 
+        # do I need add?
+        db_info = User(hashed_password=hashed_password)
+        db.session.add(user_password=db_info)
+        db.session.commit()
+        # login user. Should I use next or login?                                      
+        flash('Your password has been reset. You can now login Successfully.')
+        return redirect(url_for('userinfo.login'))
+    # why does render_template need to go not in the POST if statement?? 
+    return render_template('reset_password.html', title='reset password', form=form) 
+
+
+
+
+
+
+# Code below resets your email
+# email the resetted password
+#better name
+@userinfo.route("/request_reset_password", methods = ["POST, GET"] )
+def request_reset_password():
+    # if the user is logged in make so they can't go to the register page. 
+    if current_user.is_authenticated:
+        return redirect(url_for(('userinfo.home')))
+    form = ResetPasswordTokenForm
+    if form.validate_on_submit():
+        # get email from the database , better name?
+        email = form.email.data
+        if email is None:      
+            flash("Please fill in the email field")
+              
+        user = User.query.filter_by(email=email).first()
+        send_reset_password_email(user)
+        flash("An email has been sent with instructions to your email to reset the password")    
+    return render_template('request_reset_password_token.html', title='request reset password', form=form)
+
+
+# verify the users email or after you clicked on the email from thev recieved email
+# better name for function maybe change to verify?
+@userinfo.route("/verified_email<token>", methods = ['POST', 'GET'])
+def verified_email(token): 
+    # email = function that validates token and returns email... 
+    user = User.verify_token(token)
+    	
+    # if the user is already verified  
+    confirmation_email = user.confirmation_email
+    if confirmation_email is True:
+        # flash is not working here
+        flash('You already verified your email!')
+        return redirect(url_for('userinfo.home'))   
+  
+    # make confirmation_email True
+    # Use this code if adding code to the database that is not the first time
+    email = user.email
+    user = User.query.filter_by(email=email).first_or_404() 
+    user.confirmation_email = True  
+    db.session.add(user)
+    db.session.commit()
+    
+    form = RegistrationForm
+    return render_template('verified_email.html', title = 'verified email', form=form)
+
+
+
+
+
+
+
 
 
 # get data from wtf forms 
@@ -47,8 +145,9 @@ def home():
     # .query.all() means I get all info from the database.   
     #if there are no posts in the database
     Posts_db = Posts.query.all() 
-    return render_template('home.html', Posts_db=Posts_db, title='home') 
-'''     
+    return render_template('home.html', Posts_db=Posts_db, title='home')  
+
+'''  
 # Check 1st 512 bytes and makes sure it is the correct extension.
 # By extension I just mean .jpg etc
 def validate_image(stream):
@@ -98,9 +197,8 @@ def upload_files(username):
         # Make the file publically aviable 
         uploaded_file.save(os.path.join(['UPLOAD_PATH'], filename))
     return redirect(url_for('profile.html')
-
- '''
-
+'''
+ 
 @userinfo.route('/profile/<string:username>', methods = ['GET'])
 def profile(username): 
     username = User.query.filter_by(username=username).first_or_404()
@@ -108,26 +206,28 @@ def profile(username):
     return render_template('profile.html', title='profile', username=username)
     
 
-
+@login_required 
 @userinfo.route("/profile/<string:username>/update_profile", methods = ['POST'])
 def update_profile(username):  
     form = UpdateAccountForm 
     
     if form.validate_on_submit():
         password = form.password.data
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         confirm_password = form.confirm_password
+        # should I get the hashed passwords before checking them? 
         if password != confirm_password:
             # need better phrasing 
             flash("Your passwords fields don't match.") 
         else:
             # Can the line below have a "_" in it?
             # profilepicture = request.files['profilepicture']
-            # files = request.files.getlist('images')
-            user_db = User(hashed_password=hashed_password)
-            db.session.add(user_db)
+            # files = request.files.getlist('images')    
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            # user = User.query.filter_by(hashed_password='hashed_password').first()
+            user = User(hashed_password=hashed_password)
+            db.session.add(user)
             db.session.commit()
-            return render_template('update_profile.html', title='update_profile', username=username, form=form)
+        return render_template('update_profile.html', title='update_profile', username=username, form=form)
 
 
 
@@ -142,6 +242,30 @@ def about():
 # bcrypt.hashpw vs bcrypt.checkpw Are they correct? 
 
 
+# should i include lower case?
+
+def make_password_contain_capital(confirm_password):
+    word = confirm_password
+    if not word.isupper():
+      flash("Please include a capital letter in the password field")  
+      # what should I return, return redirect?
+      return 
+
+def make_password_contain_number(confirm_password):
+    word = confirm_password
+    if not word.isnumeric():
+      flash("Please include a number in the password field")  
+      # what should I return, return redirect?
+      return  
+ 
+def make_password_contain_special_characters(confirm_password):
+    word = confirm_password
+    if word.isalpha() or word.isnumeric():
+      flash("Please include a special character in the password field")  
+      # what should I return, return redirect?
+      return  
+
+
 
 @userinfo.route("/register", methods = ['POST', 'GET'])
 def register():
@@ -152,7 +276,7 @@ def register():
     
     form = RegistrationForm()
     if form.validate_on_submit():
-       
+    
         username = form.username.data
         if username is None:
             flash("Please fill in the username field")
@@ -167,12 +291,14 @@ def register():
             flash("Please fill in the confirm password field")
 
 
-    
+
+
+        ''' 
+        make_password_contain_capital(confirm_password)
+        make_password_contain_number(confirm_password):
+        make_password_contain_special_characters(confirm_password)
         '''
-        if user is None:
-            return print("user is none") 
-        '''
-        
+  
         
         flash("An email has been sent with instructions to your email to create the password")     
         # didn't I already declare password?
@@ -181,22 +307,21 @@ def register():
         # get data form wtf forms iow get user inputted data from the forms
         # password = userInput
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        
+        # Use this code if adding code to the database the first time.
         user_db = User(username=username, email=email, hashed_password=hashed_password)
         db.session.add(user_db)
         db.session.commit()
     
         user = User.query.filter_by(email=email).first()
         send_account_registration_email(user)
-                                        
-
-
-
-
         flash('You have almost registered successfully. Pleae click the link in your email to complete the registeration.')
         return redirect(url_for('userinfo.login'))
+    
+    '''    
     else:
         flash('You have registered unsuccessfully')
+    ''' 
+
     return render_template('register.html',title='register', form=form)
 
 
@@ -205,12 +330,25 @@ def register():
 def login():
     # if the user is logged in make it so they can't go to the login page. 
     if current_user.is_authenticated:
-        return redirect(url_for(('userinfo.home')))    
+        return redirect(url_for('userinfo.home')) 
+
     form = LoginForm()
     if form.validate_on_submit():
+        username = form.username.data
+        
+        user = User.query.filter_by(username=username).first()
+        confirm_email = user.confirmation_email
+        if confirm_email is False:
+            # is not working here
+            flash("Please click on the registration email")
+            return redirect(url_for('userinfo.home'))
+
+
+        ''' 
         email = form.email.data
         if email is None:    
             flash("Please fill in the email field")
+        '''
         username = form.username.data
         if username is None:    
             flash("Please fill in the username field")
@@ -221,7 +359,7 @@ def login():
         # check if username and password inputted in login forms matches the database
         # db_username = User.query.filter_by(username=username).first()
        
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(username=username).first()
         
 
         # Using bcrypt compare password from the form vs the current user's hashed password from the database
@@ -229,7 +367,9 @@ def login():
         if user and bcrypt.checkpw(password.encode('utf-8'), user.hashed_password):
             #log the user in remember is a boolean. Where do I get form.remember.data?
             flash('You have logged in successfully') 
-            login_user(user, remember=form.remember.data)
+            
+            # login_user(user, remember=form.remember.data)
+            login_user(user)
             # @login_required redirects to the login page no matter the route in the url. 
             # To prevent seeing the original typing use the code below.
             
@@ -237,13 +377,13 @@ def login():
             words_typed_in_url = request.args.get('next') 
             # else runs when = None
             return redirect(words_typed_in_url) if words_typed_in_url else redirect(url_for('userinfo.home'))
-        return render_template('login.html', title='login', form=form)
+    return render_template('login.html', title='login', form=form)
         
         
         # delete? hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         
         # why won't work db_hashed_password = User.query.filter_by(hashed_password=hashed_password).first()?
-        '''
+    '''
 
         # User.password is the password in the database ? 
         matching_password_with_db = bcrypt.check_password_hash(User.password, form.password.data)
@@ -261,6 +401,7 @@ def login():
 @userinfo.route("/logoff")
 @login_required
 def logoff():
+    logout_user()
     return render_template('home.html')
                   
 
