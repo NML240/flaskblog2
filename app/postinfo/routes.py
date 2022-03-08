@@ -26,9 +26,9 @@ def new_post():
 
         flash('You have posted successfully')
         return redirect(url_for('userinfo.home'))
+
+    
     return render_template('new_post.html',title='new_post', form=form)
-
-
 
 
 

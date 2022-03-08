@@ -51,7 +51,10 @@ def create_app(config_class=Config):
    
     from app.userinfo.routes import userinfo
     from app.postinfo.routes import postinfo
+    from app.email.routes import email 
+
     # why lowercse b in blueprints ?
+    app.register_blueprint(email)
     app.register_blueprint(userinfo)     
     app.register_blueprint(postinfo)
     return app 

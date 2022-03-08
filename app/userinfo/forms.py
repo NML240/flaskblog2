@@ -10,7 +10,6 @@ from app.models import User
 
 # should I improve wff forms to more modern wtforms stlye?
 
-
 # Also use Registrationform in verified.html
 class RegistrationForm(FlaskForm):
     username = StringField('Username',validators=
@@ -56,40 +55,10 @@ class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired('Username is required')],)  
     password = PasswordField('Password', validators=[DataRequired('Password is required'),])
     
-'''
-class Postform(FlaskForm):
-    title = StringField('title', validators=[DataRequired('title is required')],)  
-    content = TextAreaField('content', validators=[DataRequired('content is required')],) # need better phrasing then 'content is required'
 
 
-class ProfileForm(FlaskForm): 
-    picture = FileField('profilepicture', validators=[FileAllowed(['jpg', 'png'])]
-'''  
 
-class ResetPasswordTokenForm(FlaskForm):
-    
-    email = EmailField('Email', validators=
-    [
-    DataRequired('Email is required'),
-    # Is the line below useful
-    Length(min=4, max=25, message='Must be between 4 and 25 characters'),
-    ])
-       
-    reset_password = PasswordField('Password', [validators.Length(min=4, max=25)]) 
-    # does 'profilepicture' below need to match the database?
-    #update_picture = FileField('profilepicture', validators=[FileAllowed(['jpg', 'png'])])  
-    
-    # Could the function below be in routes.py?
 
-    # I want an email that does exist
-    '''
-    # check if the email does not exist so you can throw an error 
-    def validate (self, email):
-        email = User.query.filter_by(email=email.data.first())
-        # is None just checks if it is none
-        if email is None: 
-            raise ValidationError ("You have entered a email that does not exist. Please register a valid email.")
-    ''' 
 class UpdateAccountForm(FlaskForm):
     password = PasswordField('Password', validators=
     [
@@ -101,6 +70,23 @@ class UpdateAccountForm(FlaskForm):
     [
     DataRequired('Does not match password'),
     ])
+
+
+
+
+
+
+
+'''
+class Postform(FlaskForm):
+    title = StringField('title', validators=[DataRequired('title is required')],)  
+    content = TextAreaField('content', validators=[DataRequired('content is required')],) # need better phrasing then 'content is required'
+
+
+class ProfileForm(FlaskForm): 
+    picture = FileField('profilepicture', validators=[FileAllowed(['jpg', 'png'])]
+'''  
+
 
 
 
