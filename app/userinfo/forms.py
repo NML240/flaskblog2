@@ -1,6 +1,7 @@
 # Register forms 
 from flask_wtf import FlaskForm
-from wtforms import TextAreaField, BooleanField, PasswordField, StringField, TextAreaField , EmailField
+from wtforms import TextAreaField, BooleanField, PasswordField, StringField, TextAreaField 
+from wtforms.fields.html5 import EmailField
 from wtforms import validators
 from wtforms.fields.simple import FileField
 from wtforms.validators import DataRequired, Length , ValidationError

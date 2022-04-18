@@ -1,12 +1,23 @@
-import os     
-
+import os      
+# what does this do
+# basedir = os.path.abspath(os.path.dirname(__file__))
 # app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 becomes ['MAX_CONTENT_LENGTH']
+
 
 class Config:
     # Setup CSRF secret key
     SECRET_KEY = os.urandom(32)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
+    SQLALCHEMY_DATABASE_URI ='sqlite:///db.sqlite3'
+
+    ''' 
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI) or \
+    'sqlite:///' + os.path.join(basedir, 'test.db')
+    '''      
+
+    # what is after or
+
+     
      # what do these lines do?
     DEBUG = False
     TESTING = False

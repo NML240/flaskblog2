@@ -8,18 +8,17 @@
 <!-- Should I name it different then block content? -->
 {% block content %}
         <!--before random image <img src="img_girl.jpg" alt="Girl in a jacket"> -->
-        <!-- Now image from the database -->
-        
-            
+        <!-- Now image from the database -->    
         {% if current_user.is_authenticated and current_user.username == username %}       
         
-                <h2> <a href="{{ url_for('userinfo.profile', username=username, username.update_profile) }}"> update profile info </a> </h2>
+                <!-- I don't need this line because I am not updating profile so far
+                        <h2> <a href="{{ url_for('userinfo.update_profile', username=username) }}"> update profile info </a> </h2> -->
         {% endif %}
                  <!-- List of all the postinfo of a user -->
                 {{ (username) }}
         <!-- checks to make sure I have posts -->
-        {% if posts_id != None %}
-                {% for column in username.posts %}
+        {% if current_user.content != None %}
+                {% for column in username.id %}
                         {{ (column.email) }}
                         {{ (column.title) }}
                         {{ (column.content) }}

@@ -2,19 +2,19 @@ from flask import Blueprint, flash, render_template, request, redirect, url_for,
 from flask_login import login_user, login_required, current_user 
 from app import db, mail 
 # make bcrypt and db work 
+
 import bcrypt
+
 from flask_mail import Message 
 # itsdangergous... gives a time sensitive message 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from app.models import User 
 from app.userinfo.forms import RegistrationForm, UpdateAccountForm
-from app.email.forms import RequestResetPasswordForm
+from app.email.forms import RequestResetPasswordForm 
 
 
 email = Blueprint('email', __name__)
-
-
 # why user in the function?
 # because I want a specific user. Shouldn't it be User? No because classes work 
 def send_account_registration_email(user):
@@ -80,23 +80,30 @@ def verified_email(token):
 
 
 
-# Code below resets your email
-# creates form for email
+# creates form for email for your password reset
 # better name
-@email.route("/request_reset_password", methods = ["POST, GET"] )
+@email.route("/request_reset_password", methods = ['POST', 'GET'])
 def request_reset_password():
-    # if the user is logged in make so they can't go to the register page. 
-    if current_user.is_authenticated:
-        return redirect(url_for(('userinfo.home')))
-    form = RequestResetPasswordForm 
-    if form.validate_on_submit():
-        # get email from the database , better name?
+
+    form = RequestResetPasswordForm()
+    if form.validate_on_submit():   
         email = form.email.data
         if email is None:      
-            flash("Please fill in the email field")          
+            flash("Please fill in the email field")
+        
         user = User.query.filter_by(email=email).first()
+        
+        # if the user is already verified.  
+        confirmation_email = user.confirmation_email
+        if confirmation_email is True:
+            # flash is not working here
+            flash('You already verified your email!')
+            return redirect(url_for('userinfo.home')) 
+
+        # should I check if the email exists? Or should I not for security purposes?
         send_reset_password_email(user)
-        flash("An email has been sent with instructions to your email to reset the password")    
+        flash("An email has been sent with instructions to your email to reset the password") 
+        return redirect(url_for('userinfo.home'))
     return render_template('request_reset_password.html', title='request reset password', form=form)
 
 
@@ -104,42 +111,45 @@ def request_reset_password():
 
 # reset password after recieved the token in a email
 # create form for password field and confirm password
-@email.route("/reset_password/<token>", methods = ["POST, GET"] )
-def reset_password_token(token):
-    # if the user is logged in make so they can't go to the register page. 
-    # take a lot of the cod from register.
+@email.route("/reset_password/<token>", methods = ["GET"] )
+def reset_password(token):
+ 
+    form = UpdateAccountForm()
+    if form.validate_on_submit():   
+        # confused by adding User?
+        # User is the name of the 1st database
+        user = User.verify_token(token)
+        if user is None:
+            flash('That is an invalid or expired token', 'warning')
+            return redirect(url_for('request_reset_password'))    
+        password = form.password.data
+        if password is None: 
+            flash("Please fill in the password field")
+        confirm_password = form.confirm_password.data
+        if confirm_password is None:    
+            flash("Please fill in the confirm password field")
+        # get data from wtf forms iow get user inputted data from the forms
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gesalt())
+        # update information already in the database 
+        # do I need add?
+
+
+
+
+
+        # make confirmation_email True
+        # Use this code if adding code to the database that is not the first time  
+        user.confirmation_email = True 
+        db.session.add(user)
+        db.session.commit()
     
-    if current_user.is_authenticated:
-        return redirect(url_for(('userinfo.home')))
+
+        db_info = User(hashed_password=hashed_password)
+        db.session.add(user_password=db_info)
+        db.session.commit()
         
-    form = UpdateAccountForm
-    
-    # confused by adding User?
-    # User is the name of the 1st database
-    user = User.verify_token(token)
-    if user is None:
-        flash('That is an invalid or expired token', 'warning')
-        return redirect(url_for('request_reset_password'))    
-    password = form.password.data
-    if password is None: 
-        flash("Please fill in the password field")
-    confirm_password = form.confirm_password.data
-    if confirm_password is None:    
-        flash("Please fill in the confirm password field")
-    # get data from wtf forms iow get user inputted data from the forms
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gesalt())
-    # update information already in the database 
-    # do I need add?
-    db_info = User(hashed_password=hashed_password)
-    db.session.add(user_password=db_info)
-    db.session.commit()
-    ''' 
-    # login user. Should I use next or login?                                      
-    flash('Your password has been reset. You can now login Successfully.')
-    return redirect(url_for('userinfo.login'))
-    '''
     # why does render_template need to go not in the POST if statement?? 
-    return render_template('reset_password.html', title='reset password', form=form) 
+    return render_template('reset_password.html', title='reset password', token=token, form=form) 
 
 
 

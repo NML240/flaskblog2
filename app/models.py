@@ -15,30 +15,24 @@ from flask import flash
 
 
 # many to many relationship
-followers = db.Table('followers',
+Followers = db.Table('followers',
     # I have 2 foreign keys from the User table.  
     db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('followed_id', db.Integer, db.ForeignKey('user.id')) )
-
-
-
-
-
-
-
-
 
 # one to many relationship between both databases
 # The One relationship
 # Why is the database class different then most?
 class User(UserMixin, db.Model):
-    # The primary key creates an unique value automatically each time starting at 1-infinity.   
+    # The primary key creates an unique value automatically each time starting at 1-infinity.   confirmation_email
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     hashed_password = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     # recieved_confirmation email
     confirmation_email = db.Column(db.Boolean, default=False, nullable=False) 
+    # recieved_confirmation email
+    reset_email_password = db.Column(db.Boolean, default=False, nullable=False)
     # relationship conects the table the table. I can get the user id by going User.id?
     # If I want to link the Posts database to the User database I can go Posts.user.id
     
@@ -54,22 +48,34 @@ class User(UserMixin, db.Model):
     # profilepicture = db.Column(db.LargeBinary, nullable=False, default='default.jpg')
   
     '''
-    Many to many relationship
+    Create Many to many relationship
     '''
+    # relationship creates the connection by the database? 
     followed = db.relationship(
         # 'User' is the right table and left table
         # secondary - configures the association followers table? 
-        # association table is defined as the table with at least 2 foreign keys in one table.
-        'User', secondary=followers,
-        # primaryjoin- links the followers_id with the id from User table.
-        primaryjoin=(followers.c.follower_id == id),
-        # secondaryjoin - links the followed_id with the User_id.
-        secondaryjoin=(followers.c.followed_id == id),
+        # child table has 2 foreign keys in one table.
+        'User', secondary=Followers,
+        # primaryjoin links the followers_id with the the user_id.
+        primaryjoin=(Followers.c.follower_id == id),
+        # secondaryjoin links the followed_id with the user_id.
+        secondaryjoin=(Followers.c.followed_id == id),
         # backref - defines how the right and left side entity will be accessed. 
         # get the right and left side entity from the followers table 
         # lazy?
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
     
+
+
+    def __init__ (self ,username: str, hashed_password: str, email: str, confirmation_email: bool, reset_email_password: bool):
+        self.username = username
+        # needs to be changed?
+        self.hashed_password = hashed_password
+        self.email = email
+        self.confirmation_email = confirmation_email
+        self.reset_email_password_= reset_email_password
+ 
+
     # what does this do?
     def __repr__(self):
         return '<User %r>' % self.username 
@@ -91,7 +97,7 @@ class User(UserMixin, db.Model):
         # followers_id = user_id if it is already following an user_id. 
         # Instead of followers.c.followed_id == user.id I am saying user.id == user.id.
         # 1 > 0 returns True and  0 > 0 returns False. 
-        return self.followed.filter(followers.c.followed_id == user.id).count() > 0
+        return self.followed.filter(Followers.c.followed_id == user.id).count() > 0
   
 
 
@@ -111,8 +117,8 @@ class User(UserMixin, db.Model):
         # I can create a table that has more then one user follows using followers.c.followed_id == Posts.user_id.      
         followed = Posts.query.join(
             # filter followers.c.follower_id == self.id selects me all the posts of one user! self.id?
-            followers, (followers.c.followed_id == Posts.user_id)).filter(
-                followers.c.follower_id == self.id)
+            Followers, (Followers.c.followed_id == Posts.user_id)).filter(
+                Followers.c.follower_id == self.id)
         # The query above works except it does not include the users own posts in the timeline. Use the line below to do that. 
         own = Posts.query.filter_by(user_id=self.id)
         # combines the followed query with the own query using union
@@ -152,7 +158,7 @@ class User(UserMixin, db.Model):
 
 
 
-# The foreign key is a many relationship 
+ 
 class Posts(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), unique=True, nullable=False)

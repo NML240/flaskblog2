@@ -9,15 +9,16 @@
     {% endif %}
 </head>
 <body>  
-    <!-- From flashmessage.html -->
-    {% block flash_msg %}   
-    {% endblock flash_msg %}
+
     <!-- get information from register.html shows register forms or 
          get information from login.html shows register forms or 
          get information from post.html shows post forms  
          get information from profile.html
          Also displays the error message for all 3 .hmtl-->
     {% block content %} 
+        <!-- From flashmessage.html  -->
+        {% block flash_msg %}   
+        {% endblock flash_msg %}
     {% endblock content %}
        <form> 
                 <h2> <a href="{{ url_for ('userinfo.home') }}">home </a></h2>

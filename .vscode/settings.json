@@ -1,5 +1,4 @@
 {
-    "python.defaultInterpreterPath": "C:/Users/nmyle/AppData/Local/Programs/Python/Python310/python.exe"
+    "python.defaultInterpreterPath": "C:/Users/nmyle/AppData/Local/Programs/Python/Python310/python.exe", 
+    "workbench.editor.enablePreview": false
 }
-
-

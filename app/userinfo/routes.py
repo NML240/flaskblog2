@@ -112,13 +112,23 @@ def upload_files(username):
 def profile(username): 
     user = User.query.filter_by(username=username).first_or_404()
     # profilepicture = request.files['profilepicture']
-    
+    '''
+    The line below won't work becauses what if I don't have any posts. 
     posts = Posts.query.filter_by(id=current_user.id).first()
-    return render_template('profile.html', title='profile', username=user.username, post_id=posts.post_id)
+    posts.id
+    '''
+
+    return render_template('profile.html', title='profile', username=user.username)
     
 
+
+
+
+
+# I am resetting a passoword differently.
+'''
 @login_required 
-@userinfo.route("/profile/<string:username>/update_profile", methods = ['POST','GET'] )
+@userinfo.route("/update_profile/<string:username>", methods = ['POST','GET'] )
 def update_profile(username):  
     form = UpdateAccountForm 
     
@@ -132,14 +142,14 @@ def update_profile(username):
             # need better phrasing 
             flash("Your passwords fields don't match.") 
         else:
-               
+
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
             user = User.query.filter_by(hashed_password='hashed_password').first()
             user = User(hashed_password=hashed_password)
             db.session.add(user)
             db.session.commit()
         return render_template('update_profile.html', title='update_profile', username=username, form=form)
-
+'''
 
 
 
@@ -160,21 +170,21 @@ def make_password_contain_capital(confirm_password):
     if not word.isupper():
       flash("Please include a capital letter in the password field")  
       # what should I return, return redirect?
-      return 
+      return make_password_contain_capital 
 
 def make_password_contain_number(confirm_password):
     word = confirm_password
     if not word.isnumeric():
       flash("Please include a number in the password field")  
       # what should I return, return redirect?
-      return  
+      return make_password_contain_number
  
 def make_password_contain_special_characters(confirm_password):
     word = confirm_password
     if word.isalpha() or word.isnumeric():
       flash("Please include a special character in the password field")  
       # what should I return, return redirect?
-      return  
+      return make_password_contain_special_characters
 
 
 
@@ -256,9 +266,10 @@ def login():
             return redirect(url_for('userinfo.home'))
 
 
+
         ''' 
         email = form.email.data
-        if email is None:    
+        if email is None:    login
             flash("Please fill in the email field")
         '''
         username = form.username.data
@@ -271,8 +282,6 @@ def login():
         # check if username and password inputted in login forms matches the database
         # db_username = User.query.filter_by(username=username).first()
        
-        user = User.query.filter_by(username=username).first()
-        
 
         # Using bcrypt compare password from the form vs the current user's hashed password from the database
         # if user exists and check passwords

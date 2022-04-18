@@ -2,24 +2,39 @@
 
 # for setting up environment variables
 import os
-# why is this line here 
+# why is this line here  
 from flask import Flask  
  
 # make SQLAlchemy work 
 from flask_sqlalchemy import SQLAlchemy
 # make login work
+from flask_migrate import Migrate
+
+
+ 
 from flask_login import LoginManager 
-# from flask.ext.login import LoginManager
+
+
 from flask_mail import Mail
 
+
 app = Flask(__name__)
+
+ 
 # setup databases
-db = SQLAlchemy()
+db = SQLAlchemy(app)
+
+#setup migrate
+migrate = Migrate(app, db)
+ 
 # Make Login user variable work ?
 login_manager = LoginManager()
 
-#You get a custom login message when @login_required appears in the code.
+# You get a custom login message when @login_required appears in the code.
 login_manager.login_message_category = 'Login is required'
+ 
+
+
 
 # make csrf protection work 
 from flask_wtf.csrf import CSRFProtect
@@ -29,6 +44,7 @@ csrf = CSRFProtect()
 # make mail work?
 mail = Mail()
 # make it so @login_required sends you to the login page. 
+  
 login_manager.login_view = 'login'
 
 # imports config from config.py
@@ -40,11 +56,17 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     
     db.init_app(app)
+     
     login_manager.init_app(app)
-    csrf.init_app(app)
     # add mail = Mail(app) to .init_app
     mail.init_app(app)
+    
+    csrf.init_app(app)
+    
+    
 
+
+    migrate.init_app(app, db)
     # add environment variables 27:25 https://www.youtube.com/watch?v=vutyTx7IaAI
     
    

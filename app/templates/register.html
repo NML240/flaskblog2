@@ -4,7 +4,9 @@
 {% block title %} {{title}} {% endblock title %} 
     {%block content%}
     <!-- Once you get the error message from ( "_formhelpers.html" import render_field) , you use novalidate to 
-     get the error message from wtf forms and makes it show up on the screen. %} -->
+     get the error message from wtf forms and makes it show up on the screen. %}
+    validate makes sure you have the correct route most of the time you can just leave it blank.
+    -->
        <form validate="" id="register" method="POST"> 
             <!-- Make the secret key work -->
             {{form.csrf_token}} 
