@@ -14,6 +14,7 @@ from app.userinfo.forms import RegistrationForm, UpdateAccountForm
 from app.email.forms import RequestResetPasswordForm 
 
 
+
 email = Blueprint('email', __name__)
 # why user in the function?
 # because I want a specific user. Shouldn't it be User? No because classes work 

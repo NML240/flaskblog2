@@ -2,13 +2,13 @@
 import os
 # use variables in routes 
 from flask import Flask, Blueprint, flash, render_template, request, redirect, url_for, abort, send_from_directory, render_template, session
-# make file uploading possible
+# make file uploading possiblef
 from werkzeug.utils import secure_filename
 # current_user gets the current User info from the database
 from flask_login import login_user, login_required, current_user , logout_user
 # importing databases 
 # import the flaskblog folder and from models.py 
-from app.models import User, Posts 
+from app.models import User, Posts
 # import db from flaskblog folder in __init__.py
 from app import db, mail
 # make bcrypt and db work 
@@ -19,6 +19,7 @@ from flask_mail import Message
 from app.userinfo.forms import (RegistrationForm, LoginForm, UpdateAccountForm)
 
 from werkzeug.utils import secure_filename
+
 
 
 from app.email.routes import send_account_registration_email
@@ -167,7 +168,7 @@ def about():
 
 def make_password_contain_capital(confirm_password):
     word = confirm_password
-    if not word.isupper():
+    if not word.isupper(): 
       flash("Please include a capital letter in the password field")  
       # what should I return, return redirect?
       return make_password_contain_capital 
@@ -204,16 +205,22 @@ def register():
         email = form.email.data
         if email is None:
             flash("Please fill in the email field")
-        password = form.password.data
-        if password is None:
+        plaintext_password = form.password.data
+        if plaintext_password is None:
             flash("Please fill in the password field")
         confirm_password = form.confirm_password.data
         if confirm_password is None:    
             flash("Please fill in the confirm password field")
-
-        if password != confirm_password:
+        
+        # won't work redirect?
+        if plaintext_password != confirm_password:
             flash("Please fill in the confirm password field")
 
+        # don't do this for passwords because this can reveal passwords. 
+        if username == form.username.data:
+            flash ("The usesrname is already taken. Please select another username")   
+        if email == form.email.data:    
+            flash("The usesrname is already taken. Please select another email")
         ''' 
         make_password_contain_capital(confirm_password)
         make_password_contain_number(confirm_password):
@@ -224,10 +231,15 @@ def register():
         # login user. Should I use next or login?
         # get data form wtf forms iow get user inputted data from the forms
         # password = userInput
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
+
+
         # Use this code if adding code to the database the first time.
-        user_db = User(username=username, email=email, hashed_password=hashed_password)
-        db.session.add(user_db)
+
+ 
+
+        user = User(username=username, email=email, hashed_password=hashed_password)
+        db.session.add(user)
         db.session.commit()
         
         user = User.query.filter_by(email=email).first()

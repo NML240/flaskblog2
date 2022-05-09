@@ -51,7 +51,7 @@ login_manager.login_view = 'login'
 from app.config import Config
 
 def create_app(config_class=Config): 
-    
+    app = Flask(__name__)
     # what does this do?
     app.config.from_object(config_class)
     

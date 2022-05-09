@@ -1,23 +1,24 @@
 from app.models import User 
+import bcrypt 
 
 def test_new_user():
     ''' 
     Given a User model
-    When a new user is being logged in
+    When a new user is being created in
     Check the User database columns
     '''
-   
-   # username  hashed_password  emai  confirmation_email  reset_email_password 
-    user = User('aiohrgihrtg', 'jotpjgjbgt','nojafa5998@royins.com', True, False)
-    # Just for testing ?
-    assert user.username == 'aiohrgihrtg'
-    ''' 
-    # check if the user exists in the other file by checking if email exists
-    assert user.email == 'nojafa5998@royins.com'
-    # check to make sure the hashed password doesn't contain plaintext.
-    assert user.hashed_password!= 'jotpjgjbgt'
-    # check if the email is registered
-    assert user.confirmation_email == True
-    '''
+    # username, hashed_password, email
+    
+    
+    plaintext_password = 'jotpjgjbgt'
+    hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
+    
+    user = User('ugbuighiug', hashed_password ,'sefefo3240@svcache.com')
+    assert user.username == 'ugbuighiug'
+    # make sure password hashed
+    assert user.hashed_password == hashed_password
+    # make sure not plaintext password 
+    assert user.hashed_password != plaintext_password 
+    assert user.email == 'sefefo3240@svcache.com'
 
-
+ 

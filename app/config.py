@@ -9,20 +9,29 @@ class Config:
     SECRET_KEY = os.urandom(32)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI ='sqlite:///db.sqlite3'
-
+   
+   
     ''' 
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI) or \
     'sqlite:///' + os.path.join(basedir, 'test.db')
     '''      
 
+
+
+    
+
+
+
+
+
     # what is after or
 
      
      # what do these lines do?
-    DEBUG = False
-    TESTING = False
- 
- 
+    DEBUG = True
+    TESTING = True
+    # This disables wtf forms when False. This useful for pytests that are POST request.
+    WTF_CSRF_ENABLED = False
     # setting UP GMAIL EMAIL
     MAIL_SERVER= 'smtp.gmail.com'
     MAIL_PORT = 465

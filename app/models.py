@@ -1,7 +1,6 @@
 # from flaskblog folder in __init__.py
 from enum import unique
 from datetime import datetime
-
 from flask_login.utils import _secret_key, decode_cookie
 from app import db, app
 from sqlalchemy import Column, Integer, String, LargeBinary
@@ -9,6 +8,8 @@ from flask_login import UserMixin, LoginManager
 # itsdangergous... gives a time sensitive message 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import flash 
+import bcrypt 
+
  
 
 # https://stackoverflow.com/questions/63231163/what-is-the-usermixin-in-flask
@@ -29,23 +30,18 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     hashed_password = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    # recieved_confirmation email
+    
     confirmation_email = db.Column(db.Boolean, default=False, nullable=False) 
-    # recieved_confirmation email
     reset_email_password = db.Column(db.Boolean, default=False, nullable=False)
-    # relationship conects the table the table. I can get the user id by going User.id?
-    # If I want to link the Posts database to the User database I can go Posts.user.id
+    # relationship conects the table the table. I can get the user id by going User.id.
+    # If I want to link the Posts database to the User database I can go Posts.user.id.
     
     # name this column afer the database from the many. 
-    # Backref is = the current database I am using except lowercase except 
-    
+    # Backref is = the current database I am using except lowercase except  
     # backref allows you to get the "user" object from a "posts" object (posts.user).
-    # What is backkref and how does this work?
+    # relationship creates the connection between the 2 databases.
     posts = db.relationship('Posts', backref='user', lazy=True)
-    # 1800 sec = 30 min 
-    # Could this be in routes.py?
-    #profilepicture = db.Column(db.LargeBinary, nullable=False)
-    # profilepicture = db.Column(db.LargeBinary, nullable=False, default='default.jpg')
+    
   
     '''
     Create Many to many relationship
@@ -67,14 +63,19 @@ class User(UserMixin, db.Model):
     
 
 
-    def __init__ (self ,username: str, hashed_password: str, email: str, confirmation_email: bool, reset_email_password: bool):
+    def __init__ (self ,username: str, hashed_password: str, email: str):
         self.username = username
-        # needs to be changed?
         self.hashed_password = hashed_password
         self.email = email
-        self.confirmation_email = confirmation_email
-        self.reset_email_password_= reset_email_password
- 
+
+        # self.confirmation_email = User.confirmation_email
+        # self.reset_email_password= User.reset_email_password
+    
+
+
+
+        
+                
 
     # what does this do?
     def __repr__(self):
@@ -92,6 +93,7 @@ class User(UserMixin, db.Model):
         # .is_following(user) is True. IOW I am following an user
         if self.is_following(user):
             self.followed.remove(user)
+    
     # check if it is_following
     def is_following(self, user):
         # followers_id = user_id if it is already following an user_id. 
@@ -99,22 +101,20 @@ class User(UserMixin, db.Model):
         # 1 > 0 returns True and  0 > 0 returns False. 
         return self.followed.filter(Followers.c.followed_id == user.id).count() > 0
   
-
-
-
-
-
-
-
-
-
-    # returns all the posts of who you following/followed.
-    # Then returns the posts of who are 
-    #  + your posts.          
+    
+    
+    
+    
+    
+    
+    
+    
+    # show blog posts written by all the people that are followed by the logged in user. 
+    # The query scales well and allows pagination and the correct date vs going user.followed.all().          
     def followed_posts(self):
         # The join condition creates a temporary table that combines data from the Posts table and the followers table. It gives me all the Posts I am following/followed! 
-        # followers.c.followed_id == Posts.user_id if it is not True then you are not following an user and you want to be following an user. 
-        # I can create a table that has more then one user follows using followers.c.followed_id == Posts.user_id.      
+        # followers.c.followed_id == Posts.user_id. If it is not True then you are not following an user and you want to be following an user. 
+        # I can create a table that has more then one user who follows using followers.c.followed_id == Posts.user_id.      
         followed = Posts.query.join(
             # filter followers.c.follower_id == self.id selects me all the posts of one user! self.id?
             Followers, (Followers.c.followed_id == Posts.user_id)).filter(
