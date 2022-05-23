@@ -63,11 +63,10 @@ class User(UserMixin, db.Model):
     
 
 
-    def __init__ (self ,username: str, hashed_password: str, email: str):
+    def __init__ (self ,username: str,  email: str, hashed_password: str):
         self.username = username
-        self.hashed_password = hashed_password
         self.email = email
-
+        self.hashed_password = hashed_password
         # self.confirmation_email = User.confirmation_email
         # self.reset_email_password= User.reset_email_password
     
@@ -81,19 +80,20 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return '<User %r>' % self.username 
 
-
+    # why functions like this and here?
 
     
     def follow(self, user):
         #  .is_following(user) is False. IOW I am not following an user
         if not self.is_following(user):
             self.followed.append(user)
+            return self
     
     def unfollow(self, user):
         # .is_following(user) is True. IOW I am following an user
         if self.is_following(user):
             self.followed.remove(user)
-    
+            return self
     # check if it is_following
     def is_following(self, user):
         # followers_id = user_id if it is already following an user_id. 

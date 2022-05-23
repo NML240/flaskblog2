@@ -1,10 +1,10 @@
 # Register forms 
 from flask_wtf import FlaskForm
-from wtforms import TextAreaField, BooleanField, PasswordField, StringField, TextAreaField 
+from wtforms import PasswordField, StringField, TextAreaField, SubmitField
 from wtforms.fields.html5 import EmailField
 from wtforms import validators
 from wtforms.fields.simple import FileField
-from wtforms.validators import DataRequired, Length , ValidationError
+from wtforms.validators import DataRequired, Length, ValidationError
 from flask_wtf.file import FileField, FileAllowed  
 from app.models import User
 
@@ -71,6 +71,14 @@ class UpdateAccountForm(FlaskForm):
     [
     DataRequired('Does not match password'),
     ])
+
+
+class EmptyForm(FlaskForm):
+    submit = SubmitField('Submit')
+
+
+
+
 
 
 

@@ -5,18 +5,18 @@ from flask import Flask, Blueprint, flash, render_template, request, redirect, u
 # make file uploading possiblef
 from werkzeug.utils import secure_filename
 # current_user gets the current User info from the database
-from flask_login import login_user, login_required, current_user , logout_user
+from flask_login import login_user, login_required, current_user ,logout_user
 # importing databases 
 # import the flaskblog folder and from models.py 
 from app.models import User, Posts
 # import db from flaskblog folder in __init__.py
-from app import db, mail
+from app import db
 # make bcrypt and db work 
 import bcrypt
 from flask_mail import Message
 
 # why not .forms? Beacuse it is an class and needs "()" brackets
-from app.userinfo.forms import (RegistrationForm, LoginForm, UpdateAccountForm)
+from app.userinfo.forms import (RegistrationForm, LoginForm, EmptyForm)
 
 from werkzeug.utils import secure_filename
 
@@ -123,7 +123,27 @@ def profile(username):
     
 
 
+'''move to different route.py keep with profile.'''
+@userinfo.route("/followers/<string:username>", methods = ['Get', 'Post'])
+# can if user is None be replaced by @login_required
+@login_required
+def followers(username):
+    form = EmptyForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=username).first_or_404() 	
+        # methods from models.py don't need self
+        is_following = is_following(user)
+        if (is_following == False):
+            current_user.follow(user)
+            db.session.commit()	
+            return render_template( 'followers.html', title='follow', form=form, is_following=is_following, username=user.username)
+        
+        else:
+            current_user.unfollow(user)
+            db.session.commit()
+            return render_template( 'followers.html', title='unfollow', form=form, is_following=is_following, username=user.username )
 
+    return render_template( 'profile.html', title='followers', form=form, username=user.username)
 
 
 # I am resetting a passoword differently.
@@ -244,7 +264,7 @@ def register():
         
         user = User.query.filter_by(email=email).first()
         send_account_registration_email(user)
-        flash('You have almost registered successfully. Pleae click the link in your email to complete the registeration.')
+        flash('You have almost registered successfully. Please click the link in your email to complete the registeration.')
         return redirect(url_for('userinfo.login'))
     
     '''    
@@ -265,7 +285,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
-        
+         
         user = User.query.filter_by(username=username).first()
         # why is flash not showing up
         if user is None:
@@ -329,25 +349,13 @@ def login():
 
 
 
-
-
-
-
-
-
-
-
-
 # for some reason I can go to the new post route when logged in? Need to fix
 @userinfo.route("/logoff")
 @login_required
 def logoff():
     logout_user()
-    return render_template('home.html')
+    return redirect('home.html')
                   
-
-
-
 
 
 

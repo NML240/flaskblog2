@@ -1,7 +1,7 @@
 from flask import flash, Blueprint, redirect, url_for, render_template, request
 from flask_login import login_required, current_user
 from app import db
-from app.models import User, Posts   
+from app.models import User, Posts
 from app.postinfo.forms import (Postform)
 
 
@@ -77,6 +77,19 @@ def post(post_id):
     post = Posts.query.get_or_404(post_id)
     # Do I need to pass on post_id 
     return render_template('post.html', post=post, post_id=post_id, title='post')
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
