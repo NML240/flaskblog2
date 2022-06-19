@@ -3,18 +3,14 @@ import bcrypt
 import pytest 
 from app import create_app
 from app import db
-
+import os 
  
 # function for tests_models.py
 # The scope='module' fixture allows you to pass in the function many times
-
+ 
+ 
 @pytest.fixture(scope='module')
-def plaintext_password():
-    plaintext_password = 'jotpjgjbgt'
-    return plaintext_password 
-
-@pytest.fixture(scope='module')
-def new_user(plaintext_password):
+def new_user():
     
     ''' 
     Given a User model
@@ -23,16 +19,18 @@ def new_user(plaintext_password):
     '''
     
     # why can't I go plaintext_password() instead of plaintext_password 
-   
-    # username, hashed_password, email
-    hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
-    user = User(username='ugbuighiug' ,email='sefefo3240@svcache.com', hashed_password=hashed_password)
-    return user
+    
+    plaintext_password = 'pojkp[kjpj[pj'
+    hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())  
+    current_user = User(username='fkpr[kfkuh', hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'])
+    return current_user
+ 
  
 
-
+ 
+ 
 # function for test_routes.py 
-
+ 
 @pytest.fixture(scope='module')
 def make_app_run_in_test_env():
     flask_app = create_app()
@@ -43,25 +41,22 @@ def make_app_run_in_test_env():
         # What is this line?
         with flask_app.app_context():
             yield testing_client
-
+ 
    
 # function for test/routes.py
 @pytest.fixture(scope='module')
-def init_database(make_app_run_in_test_env, new_user):
-
-    make_app_run_in_test_env
+def init_database(new_user):
+  
     # Create the database and the database table 
     db.create_all()
     # Insert user data
-    # fill out the data that is new.  
-
-    user = new_user
-    db.session.add(user)
+    # fill out the data that is new. ]
+    
+    db.session.add(new_user)
     # Commit the changes for the users
     db.session.commit()
-    yield  # this is where the testing happens!
-
+    yield # this is where the testing happens!
+    
     db.drop_all() # delete table after use
-
-
-
+    
+   

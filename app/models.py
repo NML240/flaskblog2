@@ -61,20 +61,18 @@ class User(UserMixin, db.Model):
         # lazy?
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
     
-
-
+   
+   
     def __init__ (self ,username: str,  email: str, hashed_password: str):
         self.username = username
+        self.hashed_password = hashed_password   
         self.email = email
-        self.hashed_password = hashed_password
-        # self.confirmation_email = User.confirmation_email
-        # self.reset_email_password= User.reset_email_password
-    
-
+     
 
 
         
                 
+
 
     # what does this do?
     def __repr__(self):

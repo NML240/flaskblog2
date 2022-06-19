@@ -1,12 +1,12 @@
 
 # Register forms 
 from flask_wtf import FlaskForm
-from wtforms import TextAreaField, BooleanField, PasswordField, StringField, TextAreaField 
+from wtforms import TextAreaField, BooleanField, PasswordField, StringField, TextAreaField, SubmitField
 from wtforms.fields.html5 import EmailField
 from wtforms import validators
 from wtforms.fields.simple import FileField
 from wtforms.validators import DataRequired, Length , ValidationError
-from flask_wtf.file import FileField, FileAllowed  
+from flask_wtf.file import FileField, FileAllowed 
 
 
 class RequestResetPasswordForm(FlaskForm):
@@ -35,4 +35,5 @@ class RequestResetPasswordForm(FlaskForm):
     ''' 
 
 
-    
+    class EmptyForm2(FlaskForm):
+        pass 

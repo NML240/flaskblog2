@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    {% if title %}
+<title> flashblog {{+ title}} </title>
+    <!-- The title will say home -->
+    {% else %} 
+        {{ 'home' }}
+    {% endif %}
+    </head>
+    <body>
+        <!-- From flashmessage.html  -->
+        {% block flash_msg %}   
+        {% endblock flash_msg %}
+        {% block content %}      
+        {% endblock content %}
+    </body>
+</html>

@@ -1,48 +1,51 @@
+# for setting up environment variables
 import os      
 # what does this do
 # basedir = os.path.abspath(os.path.dirname(__file__))
 # app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 becomes ['MAX_CONTENT_LENGTH']
 
-
-class Config:
+# what is object ?
+class Config(object): 
     # Setup CSRF secret key
     SECRET_KEY = os.urandom(32)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI ='sqlite:///db.sqlite3'
+    # EMAIL_SENDER = 
    
-   
+    # what is this for
     ''' 
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI) or \
     'sqlite:///' + os.path.join(basedir, 'test.db')
-    '''      
-
-
-
-    
-
-
-
-
-
-    # what is after or
-
-     
-     # what do these lines do?
+    '''     
+   
     DEBUG = True
+    # Is this for pytest?
     TESTING = True
-    # This disables wtf forms when False. This useful for pytests that are POST request.
-    WTF_CSRF_ENABLED = False
-    # setting UP GMAIL EMAIL
-    MAIL_SERVER= 'smtp.gmail.com'
-    MAIL_PORT = 465
-    MAIL_USE_TLS = False
-    MAIL_USE_SSL = True
-    MAIL_USERNAME = os.environ['EMAIL_USER']
-    MAIL_PASSWORD = os.environ['EMAIL_PASSWORD']
+    # When False this disables wtf forms. This useful for pytests that are POST request.
+    WTF_CSRF_ENABLED = True
+    
+    
+    
+    # setting UP Outlook email  
+
+    from redmail import outlook
+    outlook.username = os.environ['EMAIL_USERNAME']
+    outlook.password  = os.environ['EMAIL_PASSWORD']
+    EMAIL_HOST = 'smtp.office365.com'
+    EMAIL_PORT = '587'   
+    # need this to prevent error in redmail. 
+    SECURITY_EMAIL_SENDER = os.environ['EMAIL_USERNAME']
+    
+    
+    
+    # Is the same valie as ['DEBUG'] =  
+    Mail_DEBUG = True  
+  
 
     # connect to your mail server not your email address
     # confused by localhost
     # MAIL_SERVER = 'localhost' 
+    
     '''
     #depends on email provider
     MAIL_PORT =  None 
@@ -51,8 +54,6 @@ class Config:
     MAIL_USE_TLT = False
     MAIL_USE_SSL = False 
     ''' 
-    # Is the same valie as ['DEBUG'] =  
-    Mail_DEBUG = False  
     '''
     # username of the linked mail account  
     MAIL_USERNAME = None
@@ -68,6 +69,9 @@ class Config:
     # converts file name to ascii. ascii characters are english characters.
     MAIL_ASCII_ATTACHMENTS = False 
 
+    
+    
+    
     # Makes it so you can't upload a file to big breaking the database. You get a 413 status code.  
     # ['MAX_CONTENT_LENGTH'] = 1024 * 1024  
     # Makes it so you can only upload certain files

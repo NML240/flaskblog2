@@ -26,7 +26,7 @@
             {% if current_user.is_authenticated %}
                 <h2> <a href="{{ url_for ('userinfo.logoff') }}">logoff </a> </h2>
                 <h2> <a href="{{ url_for ('postinfo.new_post')}}">new_post </a></h2>
-                <h2> <a href="{{ url_for ('userinfo.profile', username = current_user.username) }}"> profile</a> <h2>
+                <h2> <a href="{{ url_for ('userinfo.profile', username = current_user.username) }}"> profile</a> </h2>
             <!-- if  current user not logged on -->
             {% else %}
                 <h2> <a href="{{ url_for ('userinfo.login') }}">login </a> </h2>

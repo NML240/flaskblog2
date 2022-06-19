@@ -1,13 +1,13 @@
+import os 
 
-import bcrypt 
-
-def test_new_user_with_fixture(new_user, plaintext_password):
+def test_new_user_with_fixture(new_user, plaintext_password = 'pojkp[kjpj[pj'):
    
+     
     # testing_hashed_password = hashed_password
-    assert new_user.username == 'ugbuighiug'
-    assert new_user.email == 'sefefo3240@svcache.com'
-    assert plaintext_password == 'jotpjgjbgt'
-    assert new_user.hashed_password != 'jotpjgjbgt'
+    assert new_user.username == 'fkpr[kfkuh' 
+    assert new_user.email == os.environ['TESTING_EMAIL_USERNAME']
+    assert plaintext_password == 'pojkp[kjpj[pj'
+    assert new_user.hashed_password != 'pojkp[kjpj[pj'
     
     
 

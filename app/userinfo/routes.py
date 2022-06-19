@@ -1,19 +1,18 @@
 # Continue 25:31 https://www.youtube.com/watch?v=803Ei2Sq-Zs
 import os
 # use variables in routes 
-from flask import Flask, Blueprint, flash, render_template, request, redirect, url_for, abort, send_from_directory, render_template, session
-# make file uploading possiblef
-from werkzeug.utils import secure_filename
-# current_user gets the current User info from the database
+from flask import  Blueprint, flash, render_template, request, redirect, url_for, render_template 
+
 from flask_login import login_user, login_required, current_user ,logout_user
-# importing databases 
-# import the flaskblog folder and from models.py 
+  
 from app.models import User, Posts
+
+from werkzeug.urls import url_parse
 # import db from flaskblog folder in __init__.py
 from app import db
 # make bcrypt and db work 
 import bcrypt
-from flask_mail import Message
+ 
 
 # why not .forms? Beacuse it is an class and needs "()" brackets
 from app.userinfo.forms import (RegistrationForm, LoginForm, EmptyForm)
@@ -22,7 +21,7 @@ from werkzeug.utils import secure_filename
 
 
 
-from app.email.routes import send_account_registration_email
+from app.mail.routes import send_account_registration_email
 # make @userinfo work from userinfo folder 
 userinfo = Blueprint('userinfo', __name__)
 
@@ -263,10 +262,9 @@ def register():
         db.session.commit()
         
         user = User.query.filter_by(email=email).first()
-        send_account_registration_email(user)
-        flash('You have almost registered successfully. Please click the link in your email to complete the registeration.')
+        flash('You have almost registered successfully. Please click the link in your email to complete the registeration.')        
+        send_account_registration_email(user) 
         return redirect(url_for('userinfo.login'))
-    
     '''    
     else:
         flash('You have registered unsuccessfully')
@@ -291,7 +289,7 @@ def login():
         if user is None:
             flash("Please register an account")
             return redirect(url_for('userinfo.home'))
-            
+        # do I need this in 2 places? I don't think so.    
         confirm_email =  user.confirmation_email
         if confirm_email is False:
             flash("Please click on the registration email")
@@ -323,18 +321,34 @@ def login():
             
             # login_user(user, remember=form.remember.data)
             login_user(user)
-            # @login_required redirects to the login page no matter the route in the url. 
-            # To prevent seeing the original typing use the code below.
+            '''           
+            The 'next' variable can have 3 values
+            To determine if the URL is relative or absolute, parse it with Werkzeug's url_parse() function and then check 
+            if the netloc component is set or not.
             
-            # get the information typed from the url learn more about this line
-            words_typed_in_url = request.args.get('next') 
-            # else runs when = None
-            return redirect(words_typed_in_url) if words_typed_in_url else redirect(url_for('userinfo.home'))
+            1st)
+	        If the login URL does not have a next argument, this is when you go to the login page and login. 
+            You you will be redirected to the home page.
+
+            2nd)
+            if the user is not logged in and tries to go to a route with @login_required, then for example post/new_post ,
+            next is = login?next=/post/upload . (This is relative import).
+           
+            3rd)
+            To protect from redirect to any other website, in the module it checks if next is relative or full url. 
+            if it's full domain then, the user is redirected to home page 
+            
+            '''
+       
+            
+            next_page = request.args.get('next')
+            if not next_page or url_parse(next_page).netloc != '':
+                next_page = url_for('userinfo.home')
+            return redirect(next_page)
     return render_template('login.html', title='login', form=form)
-        
+         
         
         # delete? hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        
         # why won't work db_hashed_password = User.query.filter_by(hashed_password=hashed_password).first()?
     '''
 

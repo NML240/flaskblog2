@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, render_template, request, redirect, url_for, abort, send_from_directory, render_template, session
+from flask import Blueprint, flash, render_template, redirect, url_for, render_template
 from flask_login import login_user, login_required, current_user 
 from app import db, mail 
 # make bcrypt and db work 
@@ -10,18 +10,25 @@ from flask_mail import Message
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from app.models import User 
-from app.userinfo.forms import RegistrationForm, UpdateAccountForm
-from app.email.forms import RequestResetPasswordForm 
+from app.userinfo.forms import (RegistrationForm, UpdateAccountForm, EmptyForm)
+from app.mail.forms import  (RequestResetPasswordForm)
 
 
 
-email = Blueprint('email', __name__)
-# why user in the function?
-# because I want a specific user. Shouldn't it be User? No because classes work 
+
+import os
+# make the email variable below work. 
+ 
+
+mail = Blueprint('mail', __name__)
+
+
+
+
+"""
+
 def send_account_registration_email(user):
-    # the function creates the randomly generated token
-    # why user? Because token needs user to access the class
-    token = user.create_token()
+
     # 'Email registration' the title
     msg = Message ('Email registration',
         sender='noreply@demo.com', 
@@ -31,6 +38,33 @@ def send_account_registration_email(user):
     If you did not make this request then simply ignore this email and no changes will be made. 
     ''' 
     mail.send(msg)
+""" 
+
+
+
+
+from redmail import outlook
+#from app.config import 
+ 
+
+# why user in 'the function?
+# because I want a specific user. Shouldn't it be User? No because classes work differently
+# verify token
+def send_account_registration_email(user):
+    form = EmptyForm()
+    # should I use a form?
+    # the function creates the randomly generated token
+    # why user? Because token needs user to access the class
+    token = user.create_token()
+    # needed for outlook.send for outlook
+    outlook.send(
+            subject="register account",
+            sender="testingifjnf@outlook.com", # any way to change this to testingifjnf@outlook.com?
+            receivers=[user.email],
+            # remember url for won't work for some reason.
+            html =  render_template('verify_email.html', title='verify email',token=token, form=form, _external=True) 
+    )
+""" 
 
 def send_reset_password_email(user):  
     # get the function from models.py
@@ -50,47 +84,46 @@ def send_reset_password_email(user):
     '''
     mail.send(msg)
 
+""" 
 
 
 
 # verify the users email or after you clicked on the email from the recieved email
 # better name for function maybe change to verify?
-@email.route("/verified_email<token>", methods = ['POST', 'GET'])
-def verified_email(token): 
-     
-    user = User.verify_token(token)
-    	
-    # if the user is already verified  
-    confirmation_email = user.confirmation_email
-    if confirmation_email is True:
-        # flash is not working here
-        flash('You already verified your email!')
-        # I don't think I need  redirect below
-        return redirect(url_for('userinfo.login'))   
-  
-    # make confirmation_email True
-    # Use this code if adding code to the database that is not the first time  
-    email = user.email
-    user = User.query.filter_by(email=email).first_or_404() 
-    user.confirmation_email = True  
-    db.session.add(user)
-    db.session.commit()
-    
-    form = RegistrationForm
-    return render_template('verified_email.html', title = 'verified email', form=form)
+@mail.route("/verified_email<token>", methods = ['POST', 'GET']) 
+def verified_email(token):    
+    # why if I put a empty form in the app.mail.forms doesn't work?
+    form = EmptyForm()
+    if form.validate_on_submit():
+        user = User.verify_token(token)
+        if user is None:
+            flash('That is an invalid or expired token')
+            return redirect(url_for('userinfo.home'))
+        confirm_email =  user.confirmation_email
+        if confirm_email is False:
+            flash("Please click on the registration email")
+            return redirect(url_for('userinfo.home'))
+        # make confirmation_email True
+        confirmation_email = True  
+        db_info = User(confirmation_email=confirmation_email)  
+        db.session.add(db_info)
+        db.session.commit()
+    return render_template('verified_email.html', title='verified email', form=form)
 
 
+
+""" 
 
 # creates form for email for your password reset
 # better name
-@email.route("/request_reset_password", methods = ['POST', 'GET'])
+@mail.route("/request_reset_password", methods = ['POST', 'GET'])
 def request_reset_password():
 
     form = RequestResetPasswordForm()
     if form.validate_on_submit():   
         email = form.email.data
         if email is None:      
-            flash("Please fill in the email field")
+            flash("Please fill in the email field"
         
         user = User.query.filter_by(email=email).first()
         
@@ -112,7 +145,7 @@ def request_reset_password():
 
 # reset password after recieved the token in a email
 # create form for password field and confirm password
-@email.route("/reset_password/<token>", methods = ["GET"] )
+@mail.route("/reset_password/<token>", methods = ["GET"] )
 def reset_password(token):
  
     form = UpdateAccountForm()
@@ -152,7 +185,7 @@ def reset_password(token):
     # why does render_template need to go not in the POST if statement?? 
     return render_template('reset_password.html', title='reset password', token=token, form=form) 
 
-
+"""
 
 
 
