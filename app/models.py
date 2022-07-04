@@ -1,16 +1,16 @@
 # from flaskblog folder in __init__.py
 from enum import unique
 from datetime import datetime
-from flask_login.utils import _secret_key, decode_cookie
-from app import db, app
+# from flask_login.utils import _secret_key, decode_cookie
+from app import db, create_app
 from sqlalchemy import Column, Integer, String, LargeBinary
 from flask_login import UserMixin, LoginManager
 # itsdangergous... gives a time sensitive message 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import flash 
 import bcrypt 
+import os
 
- 
 
 # https://stackoverflow.com/questions/63231163/what-is-the-usermixin-in-flask
 
@@ -25,7 +25,7 @@ Followers = db.Table('followers',
 # The One relationship
 # Why is the database class different then most?
 class User(UserMixin, db.Model):
-    # The primary key creates an unique value automatically each time starting at 1-infinity.   confirmation_email
+    # The primary key creates an unique value automatically each time starting at 1-infinity.   
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     hashed_password = db.Column(db.String(128), nullable=False)
@@ -62,11 +62,12 @@ class User(UserMixin, db.Model):
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
     
    
-   
-    def __init__ (self ,username: str,  email: str, hashed_password: str):
+
+    def __init__ (self ,username: str,  email: str, hashed_password: str, confirmation_email: bool):
         self.username = username
         self.hashed_password = hashed_password   
         self.email = email
+        self.confirmation_email = confirmation_email 
      
 
 
@@ -128,7 +129,8 @@ class User(UserMixin, db.Model):
     # def verify_reset_token(token) = verify_token 
     def create_token(self, expires_sec=1800):
         # Serializer passes in SECRET_KEY 30 min beacuse of expir_sec.
-        s = Serializer(app.config['SECRET_KEY'], expires_sec) 
+        SECRET_KEY = os.urandom(32)
+        s = Serializer (SECRET_KEY, expires_sec) 
         # Creates randomly assigned token as long as less then 30 min   
         return s.dumps({'user_id': self.id}).decode('utf-8')
         
@@ -140,7 +142,8 @@ class User(UserMixin, db.Model):
     def verify_token(token):
         # Serializer passes in SECRET_KEY
         # Why isn't there a time limit? To allow someone to click on the link at a later time. 
-        s = Serializer(app.config['SECRET_KEY'])
+        SECRET_KEY = os.urandom(32)
+        s = Serializer(SECRET_KEY)
         try:
             ''' 
             get user_id by running s.loads(token).if this line works  

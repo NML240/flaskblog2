@@ -6,28 +6,25 @@ from flask import Flask
 # make SQLAlchemy work 
 from flask_sqlalchemy import SQLAlchemy
 
-from flask_migrate import Migrate
-
 # make login work
 from flask_login import LoginManager 
 
 
 from flask_redmail import RedMail 
 
-
-
 # imports config from config.py
 from app.config import Config
 
-app = Flask(__name__)
+from flask_migrate import Migrate
+
+
 
 
 # setup databases
 db = SQLAlchemy()
- 
-#setup migrate
-migrate = Migrate()
- 
+
+
+
 
 
 # Make @login_required work
@@ -51,19 +48,18 @@ email = RedMail()
 
 
 
-def create_app(config_class=Config): 
-    
+def create_app(config_obj=Config): 
+    app = Flask(__name__)    
     
     # load function from config file
     # ('config_class')  'config' is the name of config.py
-    app.config.from_object(config_class)
-    
+    app.config.from_object(config_obj)
     db.init_app(app)
     login_manager.init_app(app)
     email.init_app(app)    
     csrf.init_app(app)
-    migrate.init_app(app, db)
-
+ 
+ 
        
     from app.userinfo.routes import userinfo
     from app.postinfo.routes import postinfo

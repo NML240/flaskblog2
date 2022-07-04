@@ -1,8 +1,10 @@
-{%extends "layout.html"%}
 
 <!--
+{%extends "layout.html"%}
+
+
 The message is in @app.route("/register") and  @app.route("/login").  Make the flash message work in home.html. 
--->
+
 {%block flash_msg%}  
     {%with messages = get_flashed_messages()%}
     {%if messages %}
@@ -14,4 +16,4 @@ The message is in @app.route("/register") and  @app.route("/login").  Make the f
     {% endif %}
     {% endwith %}
 {%endblock flash_msg%}    
- 
+-->

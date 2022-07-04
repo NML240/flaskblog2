@@ -235,11 +235,17 @@ def register():
         if plaintext_password != confirm_password:
             flash("Please fill in the confirm password field")
 
-        # don't do this for passwords because this can reveal passwords. 
-        if username == form.username.data:
-            flash ("The usesrname is already taken. Please select another username")   
-        if email == form.email.data:    
-            flash("The usesrname is already taken. Please select another email")
+        # don't do this for passwords because this can reveal passwords. WHat about emails?
+        all_usernames = User.query.filter_by(username=form.username.data).all()
+        all_emails = User.query.filter_by(username=form.username.data).all()
+
+        # if value other then None iow you have a username or email in the database
+        if all_usernames:
+            flash ("The usesrname is already taken. Please select another username.")
+            return redirect(url_for('userinfo.register')) 
+        if all_emails:    
+            flash("The email is already taken. Please select another email.")
+            return redirect(url_for('userinfo.register')) 
         ''' 
         make_password_contain_capital(confirm_password)
         make_password_contain_number(confirm_password):
@@ -273,41 +279,36 @@ def register():
     return render_template('register.html',title='register', form=form)
 
 
+# flash(You have almost registered successfully. Please click the link in your email to complete the registeration.) appears after I click on the registraation email?
+
+
 
 @userinfo.route("/login",methods = ['POST', 'GET'])
 def login():
+
     # if the user is logged in make it so they can't go to the login page. 
     if current_user.is_authenticated:
         return redirect(url_for('userinfo.home')) 
 
     form = LoginForm()
     if form.validate_on_submit():
-        username = form.username.data
-         
+        username = form.username.data  
         user = User.query.filter_by(username=username).first()
-        # why is flash not showing up
-        if user is None:
-            flash("Please register an account")
+
+
+        # why does this execute even if true?
+       
+        confirm_email = user.confirmation_email
+        flash(confirm_email)
+        if confirm_email == False:
+            flash('You have almost registered successfully. Please click the link in your email to complete the registeration.')  
             return redirect(url_for('userinfo.home'))
-        # do I need this in 2 places? I don't think so.    
-        confirm_email =  user.confirmation_email
-        if confirm_email is False:
-            flash("Please click on the registration email")
-            return redirect(url_for('userinfo.home'))
 
 
-
-        ''' 
-        email = form.email.data
-        if email is None:    login
-            flash("Please fill in the email field")
-        '''
-        username = form.username.data
-        if username is None:    
-            flash("Please fill in the username field")
+ 
+ 
         password = form.password.data
-        if password is None:
-            flash("Please fill in the password field")
+ 
         # query.filter_by(...).first gets the first result in the database query
         # check if username and password inputted in login forms matches the database
         # db_username = User.query.filter_by(username=username).first()
@@ -316,11 +317,12 @@ def login():
         # Using bcrypt compare password from the form vs the current user's hashed password from the database
         # if user exists and check passwords
         if user and bcrypt.checkpw(password.encode('utf-8'), user.hashed_password):
-            # log the user in remember it is a boolean. Where do I get form.remember.data?
-            flash('You have logged in successfully') 
+           
             
             # login_user(user, remember=form.remember.data)
             login_user(user)
+            # log the user in remember it is a boolean. Where do I get form.remember.data?
+            flash('You have logged in successfully') 
             '''           
             The 'next' variable can have 3 values
             To determine if the URL is relative or absolute, parse it with Werkzeug's url_parse() function and then check 
@@ -340,11 +342,11 @@ def login():
             
             '''
        
-            
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
                 next_page = url_for('userinfo.home')
             return redirect(next_page)
+
     return render_template('login.html', title='login', form=form)
          
         

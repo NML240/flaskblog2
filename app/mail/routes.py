@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, render_template, redirect, url_for, render_template
+from flask import Blueprint, flash, render_template, redirect, url_for, render_template, request
 from flask_login import login_user, login_required, current_user 
 from app import db, mail 
 # make bcrypt and db work 
@@ -87,26 +87,27 @@ def send_reset_password_email(user):
 """ 
 
 
-
+# This route is always a get request!!!
 # verify the users email or after you clicked on the email from the recieved email
 # better name for function maybe change to verify?
 @mail.route("/verified_email<token>", methods = ['POST', 'GET']) 
 def verified_email(token):    
-    # why if I put a empty form in the app.mail.forms doesn't work?
+    # why if I put a empty form in the app.mail.forms doesn't work? 
     form = EmptyForm()
-    if form.validate_on_submit():
+    if request.method == 'GET' and form.validate():
         user = User.verify_token(token)
         if user is None:
             flash('That is an invalid or expired token')
             return redirect(url_for('userinfo.home'))
-        confirm_email =  user.confirmation_email
-        if confirm_email is False:
-            flash("Please click on the registration email")
+        confirmation_email =  user.confirmation_email
+        # why does this never execute?
+        if confirmation_email is True:
+            flash('You have already clicked on the confirmation email. You can now login')
             return redirect(url_for('userinfo.home'))
         # make confirmation_email True
         confirmation_email = True  
-        db_info = User(confirmation_email=confirmation_email)  
-        db.session.add(db_info)
+        user = User(confirmation_email=confirmation_email)  
+        db.session.add(user)
         db.session.commit()
     return render_template('verified_email.html', title='verified email', form=form)
 

@@ -11,6 +11,19 @@
         {{ render_field(form.username) }}
         {{ render_field(form.password) }}
         <input type="submit" value="Submit">  
+
+        <!--make flash message work-->
+        {%with messages = get_flashed_messages()%}
+        {%if messages %}
+                <ul class=flashes>
+                {%for message in messages%}
+                        <p1>  {{message}} </p1>
+                {% endfor %}
+                </ul>
+        {% endif %}
+        {% endwith %}
+
+
 </form>
 <!-- todo make below blue and @mail.route("/request_reset_password", methods = ["POST, GET"] ) -->
 

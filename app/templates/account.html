@@ -14,4 +14,15 @@
     {{ (column.content) }}
 {% endfor %}
 
+ <!--make flash message work-->
+{%with messages = get_flashed_messages()%}
+    {%if messages %}
+        <ul class=flashes>
+        {%for message in messages%}
+        <p1>  {{message}} </p1>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+
 {% endblock content %}

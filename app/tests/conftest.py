@@ -1,3 +1,4 @@
+from hashlib import new
 from app.models import User 
 import bcrypt 
 import pytest 
@@ -22,7 +23,8 @@ def new_user():
     
     plaintext_password = 'pojkp[kjpj[pj'
     hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())  
-    current_user = User(username='fkpr[kfkuh', hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'])
+    current_user = User(username='fkpr[kfkuh', hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'],
+    confirmation_email=False)
     return current_user
  
  

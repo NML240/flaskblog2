@@ -1,5 +1,9 @@
+import email
 import os 
 import bcrypt
+
+
+
 
 def test_register_page_get(make_app_run_in_test_env):
     """ 
@@ -32,11 +36,49 @@ def test_register_page_post(make_app_run_in_test_env):
     # Why use a b string? What is response.data? Answer it only work if I have a status code 200.
     assert response.status_code == 200
     assert b'register' in response.data
-   
 
+
+
+from app.models import create_token
+
+
+
+def test_verified_email(make_app_run_in_test_env, create_token):
+
+    token = create_token 
+
+    '''
+    example uid is a variable in the function
+    response = make_app_run_in_test_env.get(f'/user/{uid}')')
+    '''
+    response = make_app_run_in_test_env.get(f"/verified/{token}")
+    
+    assert response.status_code == 200
+    
+    from redmail import EmailSender
+
+    # Just put something as host and port
+    email = EmailSender(host="localhost", port=0)
+    
+    msg = email.get_message(
+        subject='email subject',
+        sender="me@example.com",
+        receivers=['you@example.com'],
+        text="Hi, this is an email.",
+    )
+    assert str(msg) == """from: me@example.com
+    subject: Some news
+    to: you@example.com
+    Content-Type: text/plain; charset="utf-8"
+    Content-Transfer-Encoding: 7bit
+    MIME-Version: 1.0
+
+    Hi, nice to meet you.
+    """
+    assert str(msg) == 'tjjoejgj'
 
 # Each function needs test infront of it to work
-def test_valid_login(make_app_run_in_test_env, plaintext_password='fjfjfejfj'):
+def test_valid_login(make_app_run_in_test_env,init_database, new_user):
     """
     Given a flask app tests if it runs  
     When I check to make valid login and logout (POST) request
@@ -50,15 +92,17 @@ def test_valid_login(make_app_run_in_test_env, plaintext_password='fjfjfejfj'):
     
     # hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
  
-    hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
+    # hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
    
     response = make_app_run_in_test_env.post('/login', 
-    dict(username='fjrofjfjrbtt', hashed_password=hashed_password, email='dibapav117@runqx.com'),
+    dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email),
+    # dict(username='fjrofjfjrbtt', hashed_password=hashed_password, email='dibapav117@runqx.com'),
     follow_redirects=True)
     assert response.status_code == 200
  
     response = make_app_run_in_test_env.get('/logout', 
-    dict(username='fkpr[kfkuh', hashed_password=hashed_password, email='dibapav117@runqx.com'),
+    dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email),
+    # dict(username='fkpr[kfkuh', hashed_password=hashed_password, email='dibapav117@runqx.com'),
     follow_redirects=True)
     assert response.status_code == 200
     
