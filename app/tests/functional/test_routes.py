@@ -1,7 +1,7 @@
 import email
 import os 
 import bcrypt
-
+from app.models import User
 
 
 
@@ -39,22 +39,23 @@ def test_register_page_post(make_app_run_in_test_env):
 
 
 
-from app.models import create_token
+ 
+ 
 
 
-
-def test_verified_email(make_app_run_in_test_env, create_token):
-
-    token = create_token 
-
+def test_verified_email(make_app_run_in_test_env, new_user):
+    # making the token work because I can't import methods
+    
+    
     '''
     example uid is a variable in the function
-    response = make_app_run_in_test_env.get(f'/user/{uid}')')
+    response = make_app_run_in_test_env.get(f'/user/{uid}')
     '''
-    response = make_app_run_in_test_env.get(f"/verified/{token}")
-    
+    response = make_app_run_in_test_env.get("/verified_email<token>", follow_redirects=True)
+    # user = User.query.filter_by(email=new_user.email).first()
+    #token = user.create_token() 
     assert response.status_code == 200
-    
+
     from redmail import EmailSender
 
     # Just put something as host and port
@@ -67,15 +68,15 @@ def test_verified_email(make_app_run_in_test_env, create_token):
         text="Hi, this is an email.",
     )
     assert str(msg) == """from: me@example.com
-    subject: Some news
-    to: you@example.com
+    subject: email subject
+    to: me@example.com
     Content-Type: text/plain; charset="utf-8"
     Content-Transfer-Encoding: 7bit
     MIME-Version: 1.0
 
-    Hi, nice to meet you.
+    Hi, this is an email.
     """
-    assert str(msg) == 'tjjoejgj'
+    assert str(msg) == 'i'
 
 # Each function needs test infront of it to work
 def test_valid_login(make_app_run_in_test_env,init_database, new_user):
@@ -95,14 +96,15 @@ def test_valid_login(make_app_run_in_test_env,init_database, new_user):
     # hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
    
     response = make_app_run_in_test_env.post('/login', 
-    dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email),
+    data = dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email),
     # dict(username='fjrofjfjrbtt', hashed_password=hashed_password, email='dibapav117@runqx.com'),
+    # The reason I use "follow_redirects=True" is because I am being redirected in the login route.
+    # iow's i use redirect in the POST request?
     follow_redirects=True)
     assert response.status_code == 200
  
     response = make_app_run_in_test_env.get('/logout', 
-    dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email),
-    # dict(username='fkpr[kfkuh', hashed_password=hashed_password, email='dibapav117@runqx.com'),
+    data = dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email),
     follow_redirects=True)
     assert response.status_code == 200
     
