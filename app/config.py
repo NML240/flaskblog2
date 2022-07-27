@@ -13,7 +13,7 @@ class Config:
     # SQLALCHEMY_DATABASE_URI ='sqlite:///db.sqlite3'
     # EMAIL_SENDER = 
 
-    # I get 'DATABASE_URI' sqlite:///app.db or I get os.path.join(basedir, 'app.db') gives me test.db route
+    # I get 'DATABASE_URI' sqlite:///app.db or I get os.path.join(basedir, 'app.db') gives me app.db route
     # "\" is used as newline 
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI') or \
     'sqlite:///' + os.path.join(basedir, 'app.db')
@@ -21,9 +21,9 @@ class Config:
    
     DEBUG = True
     # Is this for pytest?
-    TESTING = True
+    TESTING = False
     # When False this disables wtf forms. This useful for pytests that are POST request.
-    WTF_CSRF_ENABLED = False
+    WTF_CSRF_ENABLED = True
     
     
     
@@ -70,12 +70,22 @@ class Config:
     # converts file name to ascii. ascii characters are english characters.
     MAIL_ASCII_ATTACHMENTS = False 
 
-    
-    
-    
-    # Makes it so you can't upload a file to big breaking the database. You get a 413 status code.  
-    # ['MAX_CONTENT_LENGTH'] = 1024 * 1024  
-    # Makes it so you can only upload certain files
-    # ['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.gif']
-    # Where is this located?
-    # ['UPLOAD_PATH'] = 'uploads'
+
+class Pytest_Config: 
+    DEBUG = True
+    # Is the same value as ['DEBUG'] =  
+    EMAIL_HOST = 'localhost'
+    EMAIL_PORT = '0' 
+    Mail_DEBUG = True  
+    # Is this for pytest?
+    TESTING = False	   
+    # same value ['TESTING'] =. If you are testing your app if you don't want to send emails make it True?
+    MAIL_SUPRESS_SEND = True  
+    # When False this disables wtf forms. This useful for pytests that are POST request.
+    WTF_CSRF_ENABLED = False 
+    SQLALCHEMY_TRACK_MODIFICATIONS = False   
+    # I get 'DATABASE_URI' sqlite:///app.db or I get os.path.join(basedir, 'app.db') gives me app.db route
+    # "\" is used as newline 
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI') or \
+    'sqlite:///' + os.path.join(basedir, 'app.db')
+

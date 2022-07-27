@@ -59,8 +59,9 @@ def create_app(config_obj=Config):
     email.init_app(app)    
     csrf.init_app(app)
  
- 
-       
+
+
+
     from app.userinfo.routes import userinfo
     from app.postinfo.routes import postinfo
     from app.mail.routes import mail 

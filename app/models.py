@@ -1,6 +1,6 @@
 # from flaskblog folder in __init__.py
 from enum import unique
-from datetime import datetime
+from datetime import date, datetime
 # from flask_login.utils import _secret_key, decode_cookie
 from app import db, create_app
 from sqlalchemy import Column, Integer, String, LargeBinary
@@ -172,7 +172,13 @@ class Posts(UserMixin, db.Model):
     # user.id represents the id from the User database. 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
-    
+
+    def __init__ (self ,title: str,  content: str):
+        self.title = title
+        self.content = content   
+      
+
+
     
     # what does this do?
     def __repr__(self):
