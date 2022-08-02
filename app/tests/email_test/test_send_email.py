@@ -1,3 +1,4 @@
+''' 
 
 import re
 from textwrap import dedent
@@ -46,3 +47,5 @@ def test_send(cls_dummy_smtp):
         )
     # change value to not none.
     assert email.sender is None
+
+'''

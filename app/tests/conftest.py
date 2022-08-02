@@ -1,4 +1,3 @@
-from hashlib import new
 from app.models import User 
 import bcrypt 
 import pytest 
@@ -8,6 +7,8 @@ from flask import Flask
  
  # make SQLAlchemy work 
 from flask_sqlalchemy import SQLAlchemy
+# make flask-migrate work
+from flask_migrate import Migrate
 
 # make login work
 from flask_login import LoginManager 
@@ -16,12 +17,9 @@ from flask_redmail import RedMail
 
 from app.config import Pytest_Config
 
-
+ 
 # setup databases
 db = SQLAlchemy()
-
-
-
 
 
 # Make @login_required work
@@ -58,17 +56,18 @@ def create_app(config_obj=Pytest_Config):
     # unyield here?
 
 
+
 # function for tests_models.py
 # The scope='module' fixture allows you to pass in the function many times?
 # use "@pytest.fixture(scope='module')" when in a different file or folder?
 @pytest.fixture()
 def new_user():
     
-    ''' 
+    """
     Given a User model
     When a new user is being created 
     Check the User database columns
-    '''
+    """
     
     # why can't I go plaintext_password() instead of plaintext_password 
     
@@ -81,25 +80,6 @@ def new_user():
  
 
  
-
-
-
-
-# function for test_routes.py 
- 
-@pytest.fixture()
-def make_app_run_in_test_env(create_app, config_obj=Pytest_Config):
-    flask_app = create_app(config_obj)
-    # The with statemnt allows you to open and close files safely by making sure there is no errors
-    # What is test_client/.make_app_run_in_test_env?  test_client makes requests to the application without running a live server
-    # Use the test_client to check the route which is a get request or post request
-    with flask_app.test_client() as testing_client: 
-        # What is this line?
-        with flask_app.app_context():
-            yield testing_client
- 
-   
-
 @pytest.fixture()
 def init_database(new_user):
   
@@ -114,6 +94,25 @@ def init_database(new_user):
     yield # this is where the testing happens!
     
     db.drop_all() # delete table after use
+
+
+
+# function for test_routes.py 
+ 
+@pytest.fixture()
+def make_app_run_in_test_env(create_app):
+    flask_app = create_app
+    # The with statemnt allows you to open and close files safely by making sure there is no errors
+    # What is test_client/.make_app_run_in_test_env?  test_client makes requests to the application without running a live server
+    # Use the test_client to check the route which is a get request or post request
+    with flask_app.test_client() as testing_client: 
+        # What is this line?
+        with flask_app.app_context():
+            yield testing_client
+ 
+   
+
+
     
    
 
