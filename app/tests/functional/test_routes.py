@@ -3,12 +3,13 @@ import os
 import bcrypt
 from app.models import User
 
+from app.config import Pytest_Config
 
 
 
-
-def test_register_page_get(make_app_run_in_test_env):
-    client = make_app_run_in_test_env
+# Each function needs test infront of it to work
+def test_register_page_get(make_app_run_in_test_env, pytesting_create_app, config_obj=Pytest_Config):
+    client = make_app_run_in_test_env(pytesting_create_app, config_obj)
     
     """ 
     GIVEN a Flask application configured for testing
@@ -24,9 +25,11 @@ def test_register_page_get(make_app_run_in_test_env):
     assert response.status_code == 200
     assert b'register' in response.data
    
+ 
 
-def test_register_page_post(make_app_run_in_test_env):
-    client = make_app_run_in_test_env
+
+def test_register_page_post(make_app_run_in_test_env, pytesting_create_app, config_obj=Pytest_Config):
+    client = make_app_run_in_test_env(pytesting_create_app, config_obj)
     """ 
     GIVEN a Flask application configured for testing
     WHEN the '/register requested (POST) 
@@ -46,10 +49,10 @@ def test_register_page_post(make_app_run_in_test_env):
  
  
 
-
-def test_verified_email( make_app_run_in_test_env, new_user):
+#why does normal scope in pytest work if it in the documentation it says it can be only run once?
+def test_verified_email( make_app_run_in_test_env, pytesting_create_app, config_obj=Pytest_Config ):
     # making the token work because I can't import methods
-    client = make_app_run_in_test_env
+    client = make_app_run_in_test_env(pytesting_create_app, config_obj)
     
     '''
     example uid is a variable in the function
@@ -85,14 +88,14 @@ def test_verified_email( make_app_run_in_test_env, new_user):
     """
     assert str(msg) == 'i'
  '''
-# Each function needs test infront of it to work
-def test_valid_login(make_app_run_in_test_env,init_database, new_user):
+
+def test_valid_login(make_app_run_in_test_env, new_user, pytesting_create_app, config_obj=Pytest_Config):
     """
     Given a flask app tests if it runs  
     When I check to make valid login and logout (POST) request
     Then I should be able to check login and logout using pytest
     """
-    client = make_app_run_in_test_env
+    client = make_app_run_in_test_env(pytesting_create_app, config_obj)
     # If an endpoint which redirects needs to be tested, then follow_redirects=True is useful because it lets the client go to the redirected location.
     # let me check
     # can I just ask a very stupid question in my redirect route in the post request I redirected to the home page. 

@@ -20,7 +20,7 @@ class Config:
          
    
     DEBUG = True
-    # Is this for pytest?
+    #  for pytest?
     TESTING = False
     # When False this disables wtf forms. This useful for pytests that are POST request.
     WTF_CSRF_ENABLED = True
@@ -77,8 +77,8 @@ class Pytest_Config:
     EMAIL_HOST = 'localhost'
     EMAIL_PORT = '0' 
     Mail_DEBUG = True  
-    # Is this for pytest?
-    TESTING = False	   
+    # for pytest
+    TESTING = True	   
     # same value ['TESTING'] =. If you are testing your app if you don't want to send emails make it True?
     MAIL_SUPRESS_SEND = True  
     # When False this disables wtf forms. This useful for pytests that are POST request.

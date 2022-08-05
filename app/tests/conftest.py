@@ -17,6 +17,32 @@ from flask_redmail import RedMail
 
 from app.config import Pytest_Config
 
+
+
+
+# function for tests_models.py
+# The scope='module' fixture allows you to pass in the function many times?
+# use "@pytest.fixture(scope='module')" when in a different file or folder?
+@pytest.fixture()
+def new_user():
+    
+    """
+    Given a User model
+    When a new user is being created 
+    Check the User database columns
+    """
+    
+    # why can't I go plaintext_password() instead of plaintext_password 
+    
+    plaintext_password = 'pojkp[kjpj[pj'
+    hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())  
+    current_user = User(username='fkpr[kfkuh', hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'],
+    confirmation_email=False)
+    return current_user
+ 
+
+
+
  
 # setup databases
 db = SQLAlchemy()
@@ -41,8 +67,14 @@ email = RedMail()
 # make it so @login_required sends you to the login page. 
 
 
+ 
+
+
+
+
+
 @pytest.fixture()
-def create_app(config_obj=Pytest_Config):
+def pytesting_create_app(config_obj=Pytest_Config):
     app = Flask(__name__)
 
     app.config.from_object(config_obj)
@@ -51,35 +83,38 @@ def create_app(config_obj=Pytest_Config):
     db.init_app(app)
     login_manager.init_app(app)
     email.init_app(app) 
-
     yield app 
+
     # unyield here?
 
 
+def context(pytesting_create_app, new_user):
+    with pytesting_create_app.app_context():
+        user = db.User(new_user.username)
+        db.session.add(user)
+        db.session.commit()
 
-# function for tests_models.py
-# The scope='module' fixture allows you to pass in the function many times?
-# use "@pytest.fixture(scope='module')" when in a different file or folder?
+ 
+
+
+
+
+# function for test_routes.py 
+ 
 @pytest.fixture()
-def new_user():
-    
-    """
-    Given a User model
-    When a new user is being created 
-    Check the User database columns
-    """
-    
-    # why can't I go plaintext_password() instead of plaintext_password 
-    
-    plaintext_password = 'pojkp[kjpj[pj'
-    hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())  
-    current_user = User(username='fkpr[kfkuh', hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'],
-    confirmation_email=False)
-    return current_user
+# IOW the function is client
+def make_app_run_in_test_env(pytesting_create_app, config_obj=Pytest_Config):
+    flask_app = pytesting_create_app(config_obj)
+    # The with statemnt allows you to open and close files safely by making sure there is no errors
+    # What is test_client/.make_app_run_in_test_env?  test_client makes requests to the application without running a live server
+    # Use the test_client to check the route which is a get request or post request
+    with flask_app.test_client() as testing_client: 
+        # What is this line?
+        with flask_app.app_context():
+            yield testing_client
  
- 
+   
 
- 
 @pytest.fixture()
 def init_database(new_user):
   
@@ -94,25 +129,6 @@ def init_database(new_user):
     yield # this is where the testing happens!
     
     db.drop_all() # delete table after use
-
-
-
-# function for test_routes.py 
- 
-@pytest.fixture()
-def make_app_run_in_test_env(create_app):
-    flask_app = create_app
-    # The with statemnt allows you to open and close files safely by making sure there is no errors
-    # What is test_client/.make_app_run_in_test_env?  test_client makes requests to the application without running a live server
-    # Use the test_client to check the route which is a get request or post request
-    with flask_app.test_client() as testing_client: 
-        # What is this line?
-        with flask_app.app_context():
-            yield testing_client
- 
-   
-
-
     
    
 
