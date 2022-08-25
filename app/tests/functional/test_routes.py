@@ -1,45 +1,54 @@
 import email
-import os 
+import os
+# from types import new_class 
 import bcrypt
 from app.models import User
-
-from app.config import Pytest_Config
-
+from flask_migrate import Migrate
 
 
-# Each function needs test infront of it to work
-def test_register_page_get(make_app_run_in_test_env, pytesting_create_app, config_obj=Pytest_Config):
-    client = make_app_run_in_test_env(pytesting_create_app, config_obj)
-    
-    """ 
+
+from app import create_app, db
+from app.config import Config, TestConfig
+# why just TestConfig in the create app function?
+app = create_app(TestConfig)
+migrate = Migrate(app, db)
+app.config.from_object(TestConfig())
+
+
+def test_register_page_get(client):
+    client = client()
+    #with client:  
+    '''
     GIVEN a Flask application configured for testing
     WHEN the '/register requested (GET) 
     THEN check that the response is valid 
-    """
+    '''
     response = client.get('/register')
-    """
+    
+
+
+    '''
     In Python, the assert statement is used to continue the execute if the given condition evaluates to True. 
     If the assert condition evaluates to False, then it raises the AssertionError exception with the specified error message.
-    """
+    '''
     # Why use a b string? What is response.data? Answer it only work if I have a status code 200.
     assert response.status_code == 200
     assert b'register' in response.data
-   
- 
+        
+    
 
-
-def test_register_page_post(make_app_run_in_test_env, pytesting_create_app, config_obj=Pytest_Config):
-    client = make_app_run_in_test_env(pytesting_create_app, config_obj)
-    """ 
+def test_register_page_post(client):
+    client = client()
+    ''' 
     GIVEN a Flask application configured for testing
     WHEN the '/register requested (POST) 
     THEN check that the response is valid 
-    """    
+    '''   
     response = client.post('/register')
-    """
+    '''
     In Python, the assert statement is used to continue the execute if the given condition evaluates to True. 
     If the assert condition evaluates to False, then it raises the AssertionError exception with the specified error message.
-    """
+    '''
     # Why use a b string? What is response.data? Answer it only work if I have a status code 200.
     assert response.status_code == 200
     assert b'register' in response.data
@@ -50,24 +59,38 @@ def test_register_page_post(make_app_run_in_test_env, pytesting_create_app, conf
  
 
 #why does normal scope in pytest work if it in the documentation it says it can be only run once?
-def test_verified_email( make_app_run_in_test_env, pytesting_create_app, config_obj=Pytest_Config ):
+def test_verified_email(client, new_user):
     # making the token work because I can't import methods
-    client = make_app_run_in_test_env(pytesting_create_app, config_obj)
+    client = client()
+
+    ''' 
+    GIVEN a Flask application configured for testing
+    WHEN the "/verified_email<token>" request is (GET) Also test the email is sent.
+    THEN check that the response is valid and the email is True in the database,
+    prior it is false in the database.
+    '''   
     
-    '''
-    example uid is a variable in the function
-    response = make_app_run_in_test_env.get(f'/user/{uid}')
-    '''
+    
     response = client.get("/verified_email<token>", follow_redirects=True)
-    # user = User.query.filter_by(email=new_user.email).first()
-    #token = user.create_token() 
     assert response.status_code == 200
-
-
-
-
-''' 
-   from redmail import EmailSender
+    
+    ''' 
+    check if the User/token has a value. If it throws an error then the function
+    if User is None is running all the time.
+    '''
+    
+    with app.app_context():
+        db.session.add(new_user)
+        db.session.commit()
+        pytesting_email = User.query.filter_by(email=new_user.email).first()
+        
+        # check if the pytesting_email has a value
+        assert pytesting_email!= None
+        
+        db.session.delete(new_user)
+        db.session.commit()
+    ''' 
+    from redmail import EmailSender
     # Just put something as host and port
     email = EmailSender(host="localhost", port=0)
     
@@ -85,146 +108,6 @@ def test_verified_email( make_app_run_in_test_env, pytesting_create_app, config_
     MIME-Version: 1.0
 
     Hi, this is an email.
-    """
+ 
     assert str(msg) == 'i'
- '''
-
-def test_valid_login(make_app_run_in_test_env, new_user, pytesting_create_app, config_obj=Pytest_Config):
-    """
-    Given a flask app tests if it runs  
-    When I check to make valid login and logout (POST) request
-    Then I should be able to check login and logout using pytest
-    """
-    client = make_app_run_in_test_env(pytesting_create_app, config_obj)
-    # If an endpoint which redirects needs to be tested, then follow_redirects=True is useful because it lets the client go to the redirected location.
-    # let me check
-    # can I just ask a very stupid question in my redirect route in the post request I redirected to the home page. 
-    # So response == 200 is fron the home page? 
-    
-    # hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
- 
-    # hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
-   
-    response = client.post('/login', 
-    data = dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email),
-    # dict(username='fjrofjfjrbtt', hashed_password=hashed_password, email='dibapav117@runqx.com'),
-    # The reason I use "follow_redirects=True" is because I am being redirected in the login route.
-    # iow's i use redirect in the POST request?
-    follow_redirects=True)
-    assert response.status_code == 200
- 
-    response = client.get('/logout', 
-    data = dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email),
-    follow_redirects=True)
-    assert response.status_code == 200
-    
-    
-#data=dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email), 
-""" 
-def test_invalid_login(init_database, make_app_run_in_test_env):
-    
-    init_database
-    new_user = None
-    # the passwords don't match
-    data = new_user(email= 'fijhrpihnp' ,password='FlaskIsGreat', confirm='FlskIsGreat')
-    response = make_app_run_in_test_env.post('/login', data, follow_redirects=True)
-    assert response.status_code == 200
-"""
-
-
-
-
-
-""" 
-# what is the point of this function should it not always return an error.
-# this should throw an error because I logged in twice
-def test_duplicate_registration(make_app_run_in_test_env, init_database, new_user):
-    init_database
-    data = new_user 
-
-    # use post because I want the data
-    response = response.make_app_run_in_test_env.post('/login',data, follow_redirect=True)
-    assert response.status_code == 200
-
-    response = response.make_app_run_in_test_env.post('/login',data, follow_redirect=True)
-    assert response.status_code == 200
-"""
-
-
-''' 
-def test_register_page_post(test_client):
-    """ 
-    GIVEN a Flask application configured for testing
-    WHEN the '/register'page requested (post) 
-    THEN check that the response is valid 
-    """
-
-    response = test_client.post('/register')
-    """
-    In Python, the assert statement is used to continue the execute if the given condition evaluates to True. 
-    If the assert condition evaluates to False, then it raises the AssertionError exception with the specified error message.
-    """
-    # Why use a b string? What is response.data? Answer it only work if I have a status code 405.
-    assert response.status_code == 200
-    # checking html for the term register
-    assert b'register' in response.data
-    """ 
-'''
-
-
-
-
-
-
-#data=dict(username=new_user.username, hashed_password=new_user.hashed_password, email=new_user.email), 
-""" 
-def test_invalid_login(init_database, make_app_run_in_test_env):
-    
-    init_database
-    new_user = None
-    # the passwords don't match
-    data = new_user(email= 'fijhrpihnp' ,password='FlaskIsGreat', confirm='FlskIsGreat')
-    response = make_app_run_in_test_env.post('/login', data, follow_redirects=True)
-    assert response.status_code == 200
-"""
-
-
-
-
-
-""" 
-# what is the point of this function should it not always return an error.
-# this should throw an error because I logged in twice
-def test_duplicate_registration(make_app_run_in_test_env, init_database, new_user):
-    init_database
-    data = new_user 
-
-    # use post because I want the data
-    response = response.make_app_run_in_test_env.post('/login',data, follow_redirect=True)
-    assert response.status_code == 200
-
-    response = response.make_app_run_in_test_env.post('/login',data, follow_redirect=True)
-    assert response.status_code == 200
-"""
-
-
-''' 
-def test_register_page_post(test_client):
-    """ 
-    GIVEN a Flask application configured for testing
-    WHEN the '/register'page requested (post) 
-    THEN check that the response is valid 
-    """
-
-    response = test_client.post('/register')
-    """
-    In Python, the assert statement is used to continue the execute if the given condition evaluates to True. 
-    If the assert condition evaluates to False, then it raises the AssertionError exception with the specified error message.
-    """
-    # Why use a b string? What is response.data? Answer it only work if I have a status code 405.
-    assert response.status_code == 200
-    # checking html for the term register
-    assert b'register' in response.data
-    """ 
-'''
-
+    '''

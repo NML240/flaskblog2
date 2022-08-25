@@ -1,11 +1,12 @@
 # for setting up environment variables
-import os      
+import os
+
 # This gives me the file which is represented by __file__ path as an absolute import. 
 basedir = os.path.abspath(os.path.dirname(__file__))
 # app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 becomes ['MAX_CONTENT_LENGTH']
 
 # what is object ?
-class Config: 
+class Config(object): 
     # Setup CSRF secret key
     SECRET_KEY = os.urandom(32)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -70,8 +71,11 @@ class Config:
     # converts file name to ascii. ascii characters are english characters.
     MAIL_ASCII_ATTACHMENTS = False 
 
+ 
 
-class Pytest_Config: 
+
+
+class TestConfig(Config): 
     DEBUG = True
     # Is the same value as ['DEBUG'] =  
     EMAIL_HOST = 'localhost'
@@ -83,9 +87,8 @@ class Pytest_Config:
     MAIL_SUPRESS_SEND = True  
     # When False this disables wtf forms. This useful for pytests that are POST request.
     WTF_CSRF_ENABLED = False 
-    SQLALCHEMY_TRACK_MODIFICATIONS = False   
+    SQLALCHEMY_TRACK_MODIFICATIONS = True 
     # I get 'DATABASE_URI' sqlite:///app.db or I get os.path.join(basedir, 'app.db') gives me app.db route
     # "\" is used as newline 
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI') or \
-    'sqlite:///' + os.path.join(basedir, 'app.db')
+  
 

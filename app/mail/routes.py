@@ -5,7 +5,7 @@ from app import db, mail
 
 import bcrypt
 
-from flask_mail import Message 
+# from flask_mail import Message 
 # itsdangergous... gives a time sensitive message 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
@@ -55,7 +55,7 @@ def send_account_registration_email(user):
     # should I use a form?
     # the function creates the randomly generated token
     # why user? Because token needs user to access the class
-    token = user.create_token()
+    token = user.create_token() # don't need to import methods just the class. Confirm?
     # needed for outlook.send for outlook
     outlook.send(
             subject="register account",
@@ -94,9 +94,9 @@ def send_reset_password_email(user):
 def verified_email(token):    
     # why if I put a empty form in the app.mail.forms doesn't work? 
     form = EmptyForm()
-    if request.method == 'GET' and form.validate():
+    if request.method == 'GET' : # and form.validate():
         user = User.verify_token(token)
-        if user is None:
+        if user is None: # why does this not work pytest later??
             flash('That is an invalid or expired token')
             return redirect(url_for('userinfo.home'))
         confirmation_email =  user.confirmation_email
@@ -109,7 +109,8 @@ def verified_email(token):
         user = User(confirmation_email=confirmation_email)  
         db.session.add(user)
         db.session.commit()
-    return render_template('verified_email.html', title='verified email', form=form)
+        
+        return render_template('verified_email.html', title='verified email', form=form)
 
 
 

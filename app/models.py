@@ -2,7 +2,6 @@
 from enum import unique
 from datetime import date, datetime
 # from flask_login.utils import _secret_key, decode_cookie
-from app import db, create_app
 from sqlalchemy import Column, Integer, String, LargeBinary
 from flask_login import UserMixin, LoginManager
 # itsdangergous... gives a time sensitive message 
@@ -10,6 +9,11 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import flash 
 import bcrypt 
 import os
+   
+from flask_login import login_manager
+
+from app import db
+
 
 
 # https://stackoverflow.com/questions/63231163/what-is-the-usermixin-in-flask
@@ -60,18 +64,18 @@ class User(UserMixin, db.Model):
         # get the right and left side entity from the followers table 
         # lazy?
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
+  
+    # why do I need this for pytesting?
     
-   
-
-    def __init__ (self ,username: str,  email: str, hashed_password: str, confirmation_email: bool):
+    def __init__ (self ,username: str,  email: str, hashed_password: str, confirmation_email=False, reset_email_password=False): 
         self.username = username
-        self.hashed_password = hashed_password   
         self.email = email
+        self.hashed_password = hashed_password 
         self.confirmation_email = confirmation_email 
-     
+        self.reset_email_password = reset_email_password
 
 
-        
+  
                 
 
 
@@ -79,9 +83,11 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return '<User %r>' % self.username 
 
-    # why functions like this and here?
+    
 
     
+    # why functions like this and here?
+
     def follow(self, user):
         #  .is_following(user) is False. IOW I am not following an user
         if not self.is_following(user):
@@ -155,9 +161,6 @@ class User(UserMixin, db.Model):
             return None 
             # why query.get? Because  "u = User.query.get(1)" gives the current user.
         return User.query.get(user_id)    
-    
-
-
 
  
 class Posts(UserMixin, db.Model):
@@ -185,12 +188,7 @@ class Posts(UserMixin, db.Model):
         return '<Posts %r>' % self.title
 
 
-from app import login_manager
-# Use User.query.get instead of User.get because of sqlalchemy
-# what is this function?
-@login_manager.user_loader
-def load_user(user_id):
-   return User.query.get(user_id)
+
 
 
 
