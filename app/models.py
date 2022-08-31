@@ -65,8 +65,8 @@ class User(UserMixin, db.Model):
         # lazy?
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
   
-    # why do I need this for pytesting?
-    
+    # form.data.email is replaced by the code below.
+    #self = new_user
     def __init__ (self ,username: str,  email: str, hashed_password: str, confirmation_email=False, reset_email_password=False): 
         self.username = username
         self.email = email

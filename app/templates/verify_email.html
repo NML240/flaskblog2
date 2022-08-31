@@ -7,7 +7,7 @@
 <!-- title is login -->
 {% block title %}  {{title}}  {% endblock title %} 
 {% block content %}
-        <!-- do I need a POST request below?-->
+        <!-- do I need a POST request below? No a POST request won't work.-->
         <form validate action="" id="verify_email" method="GET">
                 {{ form.csrf_token }}     
                 <h2> To reset your password, visit the following link: </h2>

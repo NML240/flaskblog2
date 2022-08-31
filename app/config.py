@@ -75,7 +75,7 @@ class Config(object):
 
 
 
-class TestConfig(Config): 
+class PytestConfig(Config): 
     DEBUG = True
     # Is the same value as ['DEBUG'] =  
     EMAIL_HOST = 'localhost'
@@ -90,5 +90,9 @@ class TestConfig(Config):
     SQLALCHEMY_TRACK_MODIFICATIONS = True 
     # I get 'DATABASE_URI' sqlite:///app.db or I get os.path.join(basedir, 'app.db') gives me app.db route
     # "\" is used as newline 
-  
+    
+class TokenPytestConfig(Config): 
+    SECRET_KEY = os.urandom(32)
+    WTF_CSRF_ENABLED = True
+
 

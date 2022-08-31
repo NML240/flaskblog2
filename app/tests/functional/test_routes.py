@@ -4,16 +4,22 @@ import os
 import bcrypt
 from app.models import User
 from flask_migrate import Migrate
-
+import pytest
 
 
 from app import create_app, db
-from app.config import Config, TestConfig
+from app.config import PytestConfig, TokenPytestConfig
 # why just TestConfig in the create app function?
-app = create_app(TestConfig)
-migrate = Migrate(app, db)
-app.config.from_object(TestConfig())
 
+
+
+
+app = create_app(PytestConfig)
+''' 
+migrate = Migrate(app, db)
+app.config.from_object(PytestConfig)
+'''
+from redmail import EmailSender
 
 def test_register_page_get(client):
     client = client()
@@ -55,13 +61,30 @@ def test_register_page_post(client):
 
 
 
+
+
+
+# why does this need to be a fixture and not a function?
  
- 
+def check_token(user):
+    token = user.create_token() 
+    assert token != None # assert user?
+    verify_token = user.verify_token(token)
+    assert verify_token != None # assert user? 
+
+
+
+token_app = create_app(TokenPytestConfig)
+''' 
+migrate = Migrate(token_app, db)
+token_app.config.from_object(TokenPytestConfig)
+'''
 
 #why does normal scope in pytest work if it in the documentation it says it can be only run once?
-def test_verified_email(client, new_user):
-    # making the token work because I can't import methods
-    client = client()
+def test_verified_email(token_client, new_user):
+     
+
+    token_client = token_client()
 
     ''' 
     GIVEN a Flask application configured for testing
@@ -70,44 +93,51 @@ def test_verified_email(client, new_user):
     prior it is false in the database.
     '''   
     
-    
-    response = client.get("/verified_email<token>", follow_redirects=True)
+
+
+    response = token_client.get("/verified_email<token>", follow_redirects=True)
     assert response.status_code == 200
     
-    ''' 
-    check if the User/token has a value. If it throws an error then the function
-    if User is None is running all the time.
-    '''
-    
-    with app.app_context():
+
+    with token_app.app_context():
         db.session.add(new_user)
         db.session.commit()
-        pytesting_email = User.query.filter_by(email=new_user.email).first()
-        
-        # check if the pytesting_email has a value
-        assert pytesting_email!= None
-        
-        db.session.delete(new_user)
-        db.session.commit()
-    ''' 
-    from redmail import EmailSender
-    # Just put something as host and port
-    email = EmailSender(host="localhost", port=0)
-    
-    msg = email.get_message(
-        subject='email subject',
-        sender="me@example.com",
-        receivers=['you@example.com'],
-        text="Hi, this is an email.",
-    )
-    assert str(msg) == """from: me@example.com
-    subject: email subject
-    to: me@example.com
-    Content-Type: text/plain; charset="utf-8"
-    Content-Transfer-Encoding: 7bit
-    MIME-Version: 1.0
+        ''' 
+        check if the User/token has a value. If it throws an error then the function
+        if User is None is running all the time.
+        '''
 
-    Hi, this is an email.
- 
-    assert str(msg) == 'i'
-    '''
+        email_for_pytesting = User.query.filter_by(email=new_user.email).first()
+
+        # check if the pytesting_email has a value
+        assert email_for_pytesting != None 
+        db.session.delete(new_user)
+        db.session.commit() 
+
+
+        
+        """ 
+        # Just put something as host and port
+        email = EmailSender(host="localhost", port=0)
+       
+        msg = email.get_message(
+            subject='email subject',
+            sender="me@example.com",
+            receivers=['you@example.com'],
+            text="Hi, this is an email.",
+        )
+        assert str(msg) == '''from: me@example.com
+        subject: email subject
+        to: me@example.com
+        Content-Type: text/plain; charset="utf-8"
+        Content-Transfer-Encoding: 7bit
+        MIME-Version: 1.0
+
+        Hi, this is an email.'''
+              
+        assert str(msg) == 'i'
+        """  
+    
+    
+        
+

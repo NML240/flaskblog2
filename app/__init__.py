@@ -11,8 +11,7 @@ from flask_login import LoginManager
 
 from flask_redmail import RedMail 
 
-# imports config from config.py
-from app.config import Config
+
 
  
 
@@ -48,6 +47,9 @@ login_manager.login_message_category = 'Login is required'
 # Should I use userinfo.login? 
 login_manager.login_view = 'login' 
 
+# Use User.query.get instead of User.get because of sqlalchemy
+# This function logs you in and since there is no way of storing in the database I need the function
+# Add @app because of the way the app is structured
 
 @app.login_manager.user_loader
 def load_user(id):
@@ -57,8 +59,6 @@ def load_user(id):
 
 
 def create_app(Config): 
-     
-    
     # load function from config file
     # ('config_class')  'Config' is the name of config.py class
     app.config.from_object(Config)

@@ -44,7 +44,7 @@ def send_account_registration_email(user):
 
 
 from redmail import outlook
-#from app.config import 
+
  
 
 # why user in 'the function?
@@ -62,7 +62,7 @@ def send_account_registration_email(user):
             sender="testingifjnf@outlook.com", # any way to change this to testingifjnf@outlook.com?
             receivers=[user.email],
             # remember url for won't work for some reason.
-            html =  render_template('verify_email.html', title='verify email',token=token, form=form, _external=True) 
+            html = render_template('verify_email.html', title='verify email',token=token, form=form, _external=True) 
     )
 """ 
 

@@ -2,13 +2,11 @@
 from app.models import User 
 import bcrypt 
 import pytest 
- 
-import os
- 
+import os 
 from app.models import User 
-#from app.tests.config import Test_Config 
+
 from app import create_app, db
-from app.config import TestConfig
+from app.config import PytestConfig, TokenPytestConfig 
 from flask_migrate import Migrate 
 
 
@@ -40,9 +38,12 @@ def new_user():
     return current_user
     
 # TestConfig() takes no arguments why?
-app = create_app(TestConfig)
+app = create_app(PytestConfig)
+''' 
+migrate = Migrate(app, db)
+app.config.from_object(PytestConfig)
+'''
 @pytest.fixture()
-
 # IOW the function is client
 # what exactly is a client?
 def client():
@@ -56,6 +57,37 @@ def runner():
     return app.test_cli_runner()
 
 
-    
-    
+
+
+
+
+
+token_app = create_app(TokenPytestConfig)
+'''
+migrate = Migrate(token_app, db)
+token_app.config.from_object(TokenPytestConfig)
+'''
+
+
+
+
+@pytest.fixture()
+# IOW the function is client
+# what exactly is a client?
+def token_client():
+    # make_app_run_in_test_env = client
+    return token_app.test_client
+
+
+# what is the point of this?
+@pytest.fixture()
+def token_runner():
+    return token_app.test_cli_runner()
+
+
+
+
+
+
+
 
