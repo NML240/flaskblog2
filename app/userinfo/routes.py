@@ -269,7 +269,7 @@ def register():
         
         user = User.query.filter_by(email=email).first()
         flash('You have almost registered successfully. Please click the link in your email to complete the registeration.')        
-        send_account_registration_email(user) 
+        send_account_registration_email() 
         return redirect(url_for('userinfo.login'))
     '''    
     else:

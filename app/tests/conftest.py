@@ -48,7 +48,7 @@ app.config.from_object(PytestConfig)
 # what exactly is a client?
 def client():
     # make_app_run_in_test_env = client
-    return app.test_client
+    return app.test_client()
 
 
 # what is the point of this?
@@ -76,18 +76,10 @@ token_app.config.from_object(TokenPytestConfig)
 # what exactly is a client?
 def token_client():
     # make_app_run_in_test_env = client
-    return token_app.test_client
+    return token_app.test_client()
 
 
 # what is the point of this?
 @pytest.fixture()
 def token_runner():
     return token_app.test_cli_runner()
-
-
-
-
-
-
-
-

@@ -1,3 +1,4 @@
+from tokenize import Token
 from flask import Blueprint, flash, render_template, redirect, url_for, render_template, request
 from flask_login import login_user, login_required, current_user 
 from app import db, mail 
@@ -47,20 +48,18 @@ from redmail import outlook
 
  
 
-# why user in 'the function?
-# because I want a specific user. Shouldn't it be User? No because classes work differently
-# verify token
-def send_account_registration_email(user):
-    form = EmptyForm()
+# why User.create_token(), because it is an method? 
+def send_account_registration_email():
     # should I use a form?
+    form = EmptyForm()
     # the function creates the randomly generated token
-    # why user? Because token needs user to access the class
-    token = user.create_token() # don't need to import methods just the class. Confirm?
+    
+    token = User.create_token() # don't need to import methods just the class. Confirm?
     # needed for outlook.send for outlook
     outlook.send(
             subject="register account",
-            sender="testingifjnf@outlook.com", # any way to change this to testingifjnf@outlook.com?
-            receivers=[user.email],
+            sender="testingifjnf@outlook.com", 
+            receivers=[token.email],
             # remember url for won't work for some reason.
             html = render_template('verify_email.html', title='verify email',token=token, form=form, _external=True) 
     )

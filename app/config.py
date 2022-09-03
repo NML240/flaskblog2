@@ -8,6 +8,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # what is object ?
 class Config(object): 
     # Setup CSRF secret key
+    # change to environment variable
     SECRET_KEY = os.urandom(32)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # why can't I use the below for flask-migrate
@@ -23,7 +24,7 @@ class Config(object):
     DEBUG = True
     #  for pytest?
     TESTING = False
-    # When False this disables wtf forms. This useful for pytests that are POST request.
+    # When False this disables wtf forms. This makes POST request work for pytest when False.
     WTF_CSRF_ENABLED = True
     
     
@@ -85,14 +86,16 @@ class PytestConfig(Config):
     TESTING = True	   
     # same value ['TESTING'] =. If you are testing your app if you don't want to send emails make it True?
     MAIL_SUPRESS_SEND = True  
-    # When False this disables wtf forms. This useful for pytests that are POST request.
+    # When False this disables wtf forms. This makes POST request work for pytest when False.
     WTF_CSRF_ENABLED = False 
     SQLALCHEMY_TRACK_MODIFICATIONS = True 
     # I get 'DATABASE_URI' sqlite:///app.db or I get os.path.join(basedir, 'app.db') gives me app.db route
     # "\" is used as newline 
-    
+ 
 class TokenPytestConfig(Config): 
-    SECRET_KEY = os.urandom(32)
-    WTF_CSRF_ENABLED = True
-
+    
+    # When False this disables wtf forms. This makes POST request work for pytest when False.
+    WTF_CSRF_ENABLED = False
+    TESTING = True	
+    
 

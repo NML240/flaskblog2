@@ -1,7 +1,6 @@
 # from flaskblog folder in __init__.py
 from enum import unique
 from datetime import date, datetime
-# from flask_login.utils import _secret_key, decode_cookie
 from sqlalchemy import Column, Integer, String, LargeBinary
 from flask_login import UserMixin, LoginManager
 # itsdangergous... gives a time sensitive message 
@@ -12,9 +11,7 @@ import os
    
 from flask_login import login_manager
 
-from app import db
-
-
+from app import db 
 
 # https://stackoverflow.com/questions/63231163/what-is-the-usermixin-in-flask
 
@@ -138,28 +135,31 @@ class User(UserMixin, db.Model):
         SECRET_KEY = os.urandom(32)
         s = Serializer (SECRET_KEY, expires_sec) 
         # Creates randomly assigned token as long as less then 30 min   
-        return s.dumps({'user_id': self.id}).decode('utf-8')
+        # might need to be 'user_id'
+        return s.dumps({'id': self.id}).decode('utf-8')
         
 
 
         
     # why @staticmethod?
     @staticmethod
+    # token is a placeholder for anything but specifically token?
     def verify_token(token):
         # Serializer passes in SECRET_KEY
-        # Why isn't there a time limit? To allow someone to click on the link at a later time. 
+        # Why isn't there a time limit? To allow someone to click on the link at a later time?
         SECRET_KEY = os.urandom(32)
         s = Serializer(SECRET_KEY)
         try:
             ''' 
-            get user_id by running s.loads(token).if this line works  
+            get user id by running s.loads(token).if this line works  
              If it does not work returns error and return none in the except block
             '''
-            user_id = s.loads(token)['user_id']   
+            # might need to be 'user_id' not id
+            user_id = s.loads(token)['id']   
         except:
-            flash('That is an invalid or expired token') 
+            # flash('That is an invalid or expired token') 
             return None 
-            # why query.get? Because  "u = User.query.get(1)" gives the current user.
+        # why query.get? Because  "u = User.query.get(1)" gives the current user.
         return User.query.get(user_id)    
 
  

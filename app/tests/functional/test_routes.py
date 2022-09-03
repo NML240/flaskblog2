@@ -22,7 +22,7 @@ app.config.from_object(PytestConfig)
 from redmail import EmailSender
 
 def test_register_page_get(client):
-    client = client()
+    
     #with client:  
     '''
     GIVEN a Flask application configured for testing
@@ -44,7 +44,7 @@ def test_register_page_get(client):
     
 
 def test_register_page_post(client):
-    client = client()
+    
     ''' 
     GIVEN a Flask application configured for testing
     WHEN the '/register requested (POST) 
@@ -67,7 +67,7 @@ def test_register_page_post(client):
 # why does this need to be a fixture and not a function?
  
 def check_token(user):
-    token = user.create_token() 
+    token = User.create_token() 
     assert token != None # assert user?
     verify_token = user.verify_token(token)
     assert verify_token != None # assert user? 
@@ -75,44 +75,55 @@ def check_token(user):
 
 
 token_app = create_app(TokenPytestConfig)
+token_app.app_context().push()
 ''' 
 migrate = Migrate(token_app, db)
 token_app.config.from_object(TokenPytestConfig)
 '''
 
 #why does normal scope in pytest work if it in the documentation it says it can be only run once?
-def test_verified_email(token_client, new_user):
-     
-
-    token_client = token_client()
-
+def test_verified_email(token_client, new_user):   
     ''' 
     GIVEN a Flask application configured for testing
     WHEN the "/verified_email<token>" request is (GET) Also test the email is sent.
     THEN check that the response is valid and the email is True in the database,
     prior it is false in the database.
     '''   
-    
-
-
     response = token_client.get("/verified_email<token>", follow_redirects=True)
     assert response.status_code == 200
     
-
-    with token_app.app_context():
-        db.session.add(new_user)
-        db.session.commit()
+    with token_app.test_request_context(): 
+        try:
+            db.session.add(new_user)
+            db.session.commit()    
+            # if token: # not none or iow some value 
+            token = User.create_token()
+            print(token) 
+            assert token != None # assert user?
+            verify_token = User.verify_token(token)
+            print(verify_token)
+            assert verify_token != None # assert user?
+            # if asserts work this will run.
+            db.session.delete(new_user)
+            db.session.commit()  
+            ''' 
+        If I get an assertion error,
+        the code will work the firt time and the code runs. 
+        The next time the code runs I will have added the username etc 2 times.
+        This will cause the except block to run due to a database error. 
+            '''
+        except:
+            db.session.delete(new_user)
+            db.session.commit()          
+            #db.session.rollback()        
         ''' 
         check if the User/token has a value. If it throws an error then the function
         if User is None is running all the time.
         '''
+    
 
-        email_for_pytesting = User.query.filter_by(email=new_user.email).first()
+                
 
-        # check if the pytesting_email has a value
-        assert email_for_pytesting != None 
-        db.session.delete(new_user)
-        db.session.commit() 
 
 
         
@@ -132,7 +143,6 @@ def test_verified_email(token_client, new_user):
         Content-Type: text/plain; charset="utf-8"
         Content-Transfer-Encoding: 7bit
         MIME-Version: 1.0
-
         Hi, this is an email.'''
               
         assert str(msg) == 'i'
@@ -140,4 +150,3 @@ def test_verified_email(token_client, new_user):
     
     
         
-
