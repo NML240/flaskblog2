@@ -20,8 +20,8 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI') or \
     'sqlite:///' + os.path.join(basedir, 'app.db')
          
-   
-    DEBUG = True
+    # should it be False?
+    DEBUG = False
     #  for pytest?
     TESTING = False
     # When False this disables wtf forms. This makes POST request work for pytest when False.
@@ -97,5 +97,6 @@ class TokenPytestConfig(Config):
     # When False this disables wtf forms. This makes POST request work for pytest when False.
     WTF_CSRF_ENABLED = False
     TESTING = True	
-    
+    #Debug needs to = False or I will get an error caused by create_all(...) vs delete_all(...).
+    DEBUG = False 
 

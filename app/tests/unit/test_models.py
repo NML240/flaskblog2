@@ -1,6 +1,7 @@
 import os 
 def test_new_user_with_fixture(new_user, plaintext_password = 'pojkp[kjpj[pj'):
     # testing_hashed_password = hashed_password
+    assert new_user.id == 5 
     assert new_user.username == 'fkpr[kfkuh' 
     assert new_user.email == os.environ['TESTING_EMAIL_USERNAME']
     assert plaintext_password == 'pojkp[kjpj[pj'

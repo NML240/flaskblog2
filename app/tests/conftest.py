@@ -1,5 +1,3 @@
-#from cgi import test
-from app.models import User 
 import bcrypt 
 import pytest 
 import os 
@@ -8,7 +6,6 @@ from app.models import User
 from app import create_app, db
 from app.config import PytestConfig, TokenPytestConfig 
 from flask_migrate import Migrate 
-
 
 
 # why do I have to declare the variables outside the fixtures? 
@@ -23,18 +20,27 @@ from flask_migrate import Migrate
 @pytest.fixture()
 def new_user():
     
-    """
+    '''
     Given a User model
     When a new user is being created 
     Check the User database columns
-    """
-    
-    # why can't I go plaintext_password() instead of plaintext_password 
-    
+    '''
+
+    id = 5
+    # example password
     plaintext_password = 'pojkp[kjpj[pj'
-    hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())  
-    current_user = User(username='fkpr[kfkuh', hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'],
+    # converting password to array of bytes
+    bytes = plaintext_password.encode('utf-8')
+    # generating the salt
+    salt = bcrypt.gensalt()
+    # Hashing the password
+    hashed_password = bcrypt.hashpw(bytes, salt)
+     
+    # plaintext_password should be hashed_password
+    current_user = User(id=id ,username='fkpr[kfkuh',plaintext_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'],
     confirmation_email=False, reset_email_password=False)
+    #db.session.add(current_user)
+    # db.session.commit()
     return current_user
     
 # TestConfig() takes no arguments why?
@@ -66,7 +72,7 @@ token_app = create_app(TokenPytestConfig)
 '''
 migrate = Migrate(token_app, db)
 token_app.config.from_object(TokenPytestConfig)
-'''
+''' 
 
 
 
@@ -83,3 +89,29 @@ def token_client():
 @pytest.fixture()
 def token_runner():
     return token_app.test_cli_runner()
+
+# Why can't the code below be located here?
+"""
+@pytest.fixture() 
+def init_database_for_tokens(new_user):
+    # Create the database and the database table
+    db.create_all(token_app)
+    # Insert user data
+    db.session.add(new_user)
+    # Commit the changes for the users
+    db.session.commit()
+    ''' 
+    yield freezes till the functions ends. 
+    This also allows you to create and delete the database 
+    while putting code inbetween
+    '''
+    yield db.drop_all(token_app)
+     
+    user = User.query.filter_by(username=new_user.id).first()
+    token = user.create_token()
+    print(token) 
+    assert token != None # assert user?
+    verify_token = User.verify_token(token)
+    print(verify_token)
+    assert verify_token != None 
+"""

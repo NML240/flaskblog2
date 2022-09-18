@@ -251,25 +251,23 @@ def register():
         make_password_contain_number(confirm_password):
         make_password_contain_special_characters(confirm_password)
         '''
-        # didn't I already declare password?
-      
-        # login user. Should I use next or login?
-        # get data form wtf forms iow get user inputted data from the forms
-        # password = userInput
-        hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
-
-
+        
+        # example password
+        plaintext_password = form.password.data
+        # converting password to array of bytes
+        bytes = plaintext_password.encode('utf-8')
+        # generating the salt
+        salt = bcrypt.gensalt()
+        # Hashing the password
+        hashed_password = bcrypt.hashpw(bytes, salt)
         # Use this code if adding code to the database the first time.
-
- 
-
         user = User(username=username, email=email, hashed_password=hashed_password)
         db.session.add(user)
         db.session.commit()
         
         user = User.query.filter_by(email=email).first()
         flash('You have almost registered successfully. Please click the link in your email to complete the registeration.')        
-        send_account_registration_email() 
+        send_account_registration_email(user) 
         return redirect(url_for('userinfo.login'))
     '''    
     else:
@@ -297,7 +295,6 @@ def login():
 
 
         # why does this execute even if true?
-       
         confirm_email = user.confirmation_email
         flash(confirm_email)
         if confirm_email == False:
@@ -307,7 +304,16 @@ def login():
 
  
  
-        password = form.password.data
+        # example password
+        plaintext_password = form.password.data
+        # converting password to array of bytes
+        bytes = plaintext_password.encode('utf-8')
+        # generating the salt
+        salt = bcrypt.gensalt()
+        # Hashing the password
+        hashed_password = bcrypt.hashpw(bytes, salt)
+        
+        
  
         # query.filter_by(...).first gets the first result in the database query
         # check if username and password inputted in login forms matches the database
@@ -316,7 +322,9 @@ def login():
 
         # Using bcrypt compare password from the form vs the current user's hashed password from the database
         # if user exists and check passwords
-        if user and bcrypt.checkpw(password.encode('utf-8'), user.hashed_password):
+       
+        database_hashed_password = User.query.filter_by(hashed_password=hashed_password).first()
+        if user and hashed_password == database_hashed_password:
            
             
             # login_user(user, remember=form.remember.data)

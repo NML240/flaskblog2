@@ -1,4 +1,3 @@
-from tokenize import Token
 from flask import Blueprint, flash, render_template, redirect, url_for, render_template, request
 from flask_login import login_user, login_required, current_user 
 from app import db, mail 
@@ -49,17 +48,17 @@ from redmail import outlook
  
 
 # why User.create_token(), because it is an method? 
-def send_account_registration_email():
+def send_account_registration_email(user):
     # should I use a form?
     form = EmptyForm()
     # the function creates the randomly generated token
     
-    token = User.create_token() # don't need to import methods just the class. Confirm?
+    token = user.create_token() # don't need to import methods just the class. Confirm?
     # needed for outlook.send for outlook
     outlook.send(
             subject="register account",
             sender="testingifjnf@outlook.com", 
-            receivers=[token.email],
+            receivers=[user.email],
             # remember url for won't work for some reason.
             html = render_template('verify_email.html', title='verify email',token=token, form=form, _external=True) 
     )
@@ -96,9 +95,12 @@ def verified_email(token):
     if request.method == 'GET' : # and form.validate():
         user = User.verify_token(token)
         if user is None: # why does this not work pytest later??
-            flash('That is an invalid or expired token')
+            flash('This is an invalid or expired token')
             return redirect(url_for('userinfo.home'))
-        confirmation_email =  user.confirmation_email
+        
+        confirmation_email = User.query.filter_by(username=user.confirmation_email).first() 
+        
+        # for testing delete after should be false. 
         # why does this never execute?
         if confirmation_email is True:
             flash('You have already clicked on the confirmation email. You can now login')
@@ -153,7 +155,7 @@ def reset_password(token):
     if form.validate_on_submit():   
         # confused by adding User?
         # User is the name of the 1st database
-        user = User.verify_token(token)
+        user = User.(token)
         if user is None:
             flash('That is an invalid or expired token', 'warning')
             return redirect(url_for('request_reset_password'))    
