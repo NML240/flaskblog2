@@ -9,7 +9,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(object): 
     # Setup CSRF secret key
     # change to environment variable
-    SECRET_KEY = os.urandom(32)
+    SECRET_KEY = 'temp_secret_key'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # why can't I use the below for flask-migrate
     # SQLALCHEMY_DATABASE_URI ='sqlite:///db.sqlite3'
@@ -21,9 +21,9 @@ class Config(object):
     'sqlite:///' + os.path.join(basedir, 'app.db')
          
     # should it be False?
-    DEBUG = False
+    DEBUG = True
     #  for pytest?
-    TESTING = False
+    TESTING = True
     # When False this disables wtf forms. This makes POST request work for pytest when False.
     WTF_CSRF_ENABLED = True
     
@@ -77,7 +77,7 @@ class Config(object):
 
 
 class PytestConfig(Config): 
-    DEBUG = True
+    DEBUG = False
     # Is the same value as ['DEBUG'] =  
     EMAIL_HOST = 'localhost'
     EMAIL_PORT = '0' 
@@ -91,7 +91,7 @@ class PytestConfig(Config):
     SQLALCHEMY_TRACK_MODIFICATIONS = True 
     # I get 'DATABASE_URI' sqlite:///app.db or I get os.path.join(basedir, 'app.db') gives me app.db route
     # "\" is used as newline 
- 
+
 class TokenPytestConfig(Config): 
     
     # When False this disables wtf forms. This makes POST request work for pytest when False.

@@ -57,7 +57,7 @@ def send_account_registration_email(user):
     # needed for outlook.send for outlook
     outlook.send(
             subject="register account",
-            sender="testingifjnf@outlook.com", 
+            sender="testingr555@outlook.com", 
             receivers=[user.email],
             # remember url for won't work for some reason.
             html = render_template('verify_email.html', title='verify email',token=token, form=form, _external=True) 
@@ -89,28 +89,26 @@ def send_reset_password_email(user):
 # verify the users email or after you clicked on the email from the recieved email
 # better name for function maybe change to verify?
 @mail.route("/verified_email<token>", methods = ['POST', 'GET']) 
-def verified_email(token):    
-    # why if I put a empty form in the app.mail.forms doesn't work? 
+def verified_email(token):      
     form = EmptyForm()
     if request.method == 'GET' : # and form.validate():
         user = User.verify_token(token)
         if user is None: # why does this not work pytest later??
-            flash('This is an invalid or expired token')
+            flash('This is an invalid or expired token2')
             return redirect(url_for('userinfo.home'))
-        
+        flash('Delete this flash message. Testing GET request in this route')    
         confirmation_email = User.query.filter_by(username=user.confirmation_email).first() 
         
         # for testing delete after should be false. 
-        # why does this never execute?
+        # why does this never execute ?
         if confirmation_email is True:
             flash('You have already clicked on the confirmation email. You can now login')
             return redirect(url_for('userinfo.home'))
-        # make confirmation_email True
+
         confirmation_email = True  
         user = User(confirmation_email=confirmation_email)  
         db.session.add(user)
-        db.session.commit()
-        
+        db.session.commit()    
         return render_template('verified_email.html', title='verified email', form=form)
 
 

@@ -18,15 +18,12 @@ from flask_migrate import Migrate
 
 
 @pytest.fixture()
-def new_user():
-    
+def new_user(): 
     '''
     Given a User model
     When a new user is being created 
     Check the User database columns
     '''
-
-    id = 5
     # example password
     plaintext_password = 'pojkp[kjpj[pj'
     # converting password to array of bytes
@@ -35,15 +32,12 @@ def new_user():
     salt = bcrypt.gensalt()
     # Hashing the password
     hashed_password = bcrypt.hashpw(bytes, salt)
-     
-    # plaintext_password should be hashed_password
-    current_user = User(id=id ,username='fkpr[kfkuh',plaintext_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'],
+    current_user = User(username='fkpr[kfkuh',hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'],
     confirmation_email=False, reset_email_password=False)
-    #db.session.add(current_user)
-    # db.session.commit()
+
     return current_user
     
-# TestConfig() takes no arguments why?
+
 app = create_app(PytestConfig)
 ''' 
 migrate = Migrate(app, db)
@@ -69,11 +63,6 @@ def runner():
 
 
 token_app = create_app(TokenPytestConfig)
-'''
-migrate = Migrate(token_app, db)
-token_app.config.from_object(TokenPytestConfig)
-''' 
-
 
 
 

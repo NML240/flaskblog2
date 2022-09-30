@@ -25,7 +25,7 @@ Followers = db.Table('followers',
 # The One relationship
 # Why is the database class different then most?
 class User(UserMixin, db.Model):
-    #  Theprimary key creates an unique value automatically each time starting at 1-infinity.   
+    # The primary key creates an unique value automatically each time starting at 1-infinity.   
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     hashed_password = db.Column(db.String(128), nullable=False)
@@ -33,7 +33,7 @@ class User(UserMixin, db.Model):
     
     confirmation_email = db.Column(db.Boolean, default=False, nullable=False) 
     reset_email_password = db.Column(db.Boolean, default=False, nullable=False)
-    # relationship conects the table the table. I can get the user id by going User.id.
+    # relationship connects the table the table. I can get the user id by going User.id.
     # If I want to link the Posts database to the User database I can go Posts.user.id.
     
     # name this column afer the database from the many. 
@@ -61,115 +61,101 @@ class User(UserMixin, db.Model):
         # lazy?
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
   
-
-  
-     
+        
+    # why functions like this and here?
+    def follow(self, user):
+        #  .is_following(user) is False. IOW I am not following an user
+        if not self.is_following(user):
+            self.followed.append(user)
+            return self
+        
+    def unfollow(self, user):
+        # .is_following(user) is True. IOW I am following an user
+        if self.is_following(user):
+            self.followed.remove(user)
+            return self
+        # check if it is_following
+    def is_following(self, user):
+        # followers_id = user_id if it is already following an user_id. 
+        # Instead of followers.c.followed_id == user.id I am saying user.id == user.id.
+        # 1 > 0 returns True and  0 > 0 returns False. 
+        return self.followed.filter(Followers.c.followed_id == user.id).count() > 0
     
-
     
-    def __init__ (self,  id: int, username: str,  email: str, plaintext_password: str, confirmation_email=False, reset_email_password=False): 
-        self.id = id 
+    
+    
+    
+    
+    
+    
+    
+    # show blog posts written by all the people that are followed by the logged in user. 
+    # The query scales well and allows pagination and the correct date vs going user.followed.all().          
+    def followed_posts(self):
+        # The join condition creates a temporary table that combines data from the Posts table and the followers table. It gives me all the Posts I am following/followed! 
+        # followers.c.followed_id == Posts.user_id. If it is not True then you are not following an user and you want to be following an user. 
+        # I can create a table that has more then one user who follows using followers.c.followed_id == Posts.user_id.      
+        followed = Posts.query.join(
+            # filter followers.c.follower_id == self.id selects me all the posts of one user! self.id?
+            Followers, (Followers.c.followed_id == Posts.user_id)).filter(
+                Followers.c.follower_id == self.id)
+        # The query above works except it does not include the users own posts in the timeline. Use the line below to do that. 
+        own = Posts.query.filter_by(user_id=self.id)
+        # combines the followed query with the own query using union
+        # Posts.timestamp.desc lists the posts in order in desc order of when they were posted.
+        return followed.union(own).order_by(Posts.timestamp.desc())
+
+
+    # get_reset_token = create_token
+    # def verify_reset_token(token) = verify_token 
+    def create_token(self, expires_sec=1800):
+        # Serializer passes in SECRET_KEY 30 min beacuse of expir_sec.
+        SECRET_KEY = 'temp_secret_key'
+        s = Serializer (SECRET_KEY, expires_sec) 
+        # Creates randomly assigned token as long as less then 30 min   
+        # might need to be 'user_id'
+        return s.dumps({'users_id': self.id}).decode('utf-8')
+            
+
+
+            
+    # why @staticmethod? So I don't have to use the self variable 
+    @staticmethod
+    # token is a placeholder for anything but specifically token?
+    def verify_token(token):
+        # Serializer passes in SECRET_KEY
+        SECRET_KEY = 'temp_secret_key'
+        s = Serializer(SECRET_KEY)
+        
+        try:
+            ''' 
+                get user id by running s.loads(token).if this line works  
+                If it does not work returns error and return none in the except block
+            '''
+                # might need to be 'user_id' not id
+            users_id = s.loads(token)['users_id']   
+        except:
+            flash('This is an invalid or expired token') 
+            # why query.get? Because  "u = User.query.get(1)" gives the current user.
+            return None
+        return User.query.get(users_id)    
+
+    '''
+    def __init__ (self ,username: str,  email: str, hashed_password: str, confirmation_email=False, reset_email_password=False): 
         self.username = username
         self.email = email
-        plaintext_password = 'pojkp[kjpj[pj'
-        # Hashing the password ( bytes, salt)
-        self.hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
+        self.hashed_password = hashed_password
         self.confirmation_email = confirmation_email 
         self.reset_email_password = reset_email_password  
-
-    ''' 
-    
-    def __repr__(self):
-        return f"User('{self.username}', '{self.email}', '{self.hashed_password}' ,'{self.confirmation_email}', '{self.reset_email_password}')"
     '''
-''' 
+
+    
     # what does this do?
     def __repr__(self):
-        return '<User %r>' % self.username 
-'''
-    
-
-    
-    # why functions like this and here?
-
-def follow(self, user):
-    #  .is_following(user) is False. IOW I am not following an user
-    if not self.is_following(user):
-        self.followed.append(user)
-        return self
-    
-def unfollow(self, user):
-    # .is_following(user) is True. IOW I am following an user
-    if self.is_following(user):
-        self.followed.remove(user)
-        return self
-    # check if it is_following
-def is_following(self, user):
-    # followers_id = user_id if it is already following an user_id. 
-    # Instead of followers.c.followed_id == user.id I am saying user.id == user.id.
-    # 1 > 0 returns True and  0 > 0 returns False. 
-    return self.followed.filter(Followers.c.followed_id == user.id).count() > 0
-  
-    
-    
-    
-    
-    
-    
-    
-    
-# show blog posts written by all the people that are followed by the logged in user. 
-# The query scales well and allows pagination and the correct date vs going user.followed.all().          
-def followed_posts(self):
-    # The join condition creates a temporary table that combines data from the Posts table and the followers table. It gives me all the Posts I am following/followed! 
-    # followers.c.followed_id == Posts.user_id. If it is not True then you are not following an user and you want to be following an user. 
-    # I can create a table that has more then one user who follows using followers.c.followed_id == Posts.user_id.      
-    followed = Posts.query.join(
-        # filter followers.c.follower_id == self.id selects me all the posts of one user! self.id?
-        Followers, (Followers.c.followed_id == Posts.user_id)).filter(
-            Followers.c.follower_id == self.id)
-    # The query above works except it does not include the users own posts in the timeline. Use the line below to do that. 
-    own = Posts.query.filter_by(user_id=self.id)
-    # combines the followed query with the own query using union
-    # Posts.timestamp.desc lists the posts in order in desc order of when they were posted.
-    return followed.union(own).order_by(Posts.timestamp.desc())
+        return '<User %r>' % self.username
 
 
-# get_reset_token = create_token
-# def verify_reset_token(token) = verify_token 
-def create_token(self, expires_sec=1800):
-    # Serializer passes in SECRET_KEY 30 min beacuse of expir_sec.
-    SECRET_KEY = os.urandom(32)
-    s = Serializer (SECRET_KEY, expires_sec) 
-    # Creates randomly assigned token as long as less then 30 min   
-    # might need to be 'user_id'
-    return s.dumps({'users_id': self.id}).decode('utf-8')
-        
 
-
-        
-# why @staticmethod?
-@staticmethod
-# token is a placeholder for anything but specifically token?
-def verify_token(token):
-    # Serializer passes in SECRET_KEY
-    # Why isn't there a time limit? To allow someone to click on the link at a later time?
-    SECRET_KEY = os.urandom(32)
-    s = Serializer(SECRET_KEY)
-    try:
-        ''' 
-            get user id by running s.loads(token).if this line works  
-             If it does not work returns error and return none in the except block
-        '''
-            # might need to be 'user_id' not id
-        users_id = s.loads(token)['users_id']   
-    except:
-        flash('This is an invalid or expired token') 
-        return None 
-    # why query.get? Because  "u = User.query.get(1)" gives the current user.
-    return User.query.get(users_id)    
-
- 
 class Posts(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), unique=True, nullable=False)
@@ -193,14 +179,3 @@ class Posts(UserMixin, db.Model):
     # what does this do?
     def __repr__(self):
         return '<Posts %r>' % self.title
-
-
-
-
-
-
-
-
-
-
-
