@@ -9,7 +9,7 @@ import bcrypt
 # itsdangergous... gives a time sensitive message 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from app.models import User 
+from app.models import User, ConfirmationEmail 
 from app.userinfo.forms import (RegistrationForm, UpdateAccountForm, EmptyForm)
 from app.mail.forms import  (RequestResetPasswordForm)
 
@@ -97,18 +97,23 @@ def verified_email(token):
             flash('This is an invalid or expired token2')
             return redirect(url_for('userinfo.home'))
         flash('Delete this flash message. Testing GET request in this route')    
-        confirmation_email = User.query.filter_by(username=user.confirmation_email).first() 
         
+    
+        user = User.query.filter_by(username=user.username).first() 
+        registration_confirmation_email = user.registration_confirmation_email
+
         # for testing delete after should be false. 
         # why does this never execute ?
-        if confirmation_email is True:
+        if registration_confirmation_email is True:
             flash('You have already clicked on the confirmation email. You can now login')
             return redirect(url_for('userinfo.home'))
+        
 
-        confirmation_email = True  
-        user = User(confirmation_email=confirmation_email)  
-        db.session.add(user)
-        db.session.commit()    
+        registration_confirmation_email = True
+        registration_confirmation_email = ConfirmationEmail(registration_confirmation_email=registration_confirmation_email)
+        db.session.add(registration_confirmation_email)
+        db.session.commit()
+  
         return render_template('verified_email.html', title='verified email', form=form)
 
 

@@ -1,7 +1,7 @@
 import bcrypt 
 import pytest 
 import os 
-from app.models import User 
+from app.models import User, ConfirmationEmail
 
 from app import create_app, db
 from app.config import PytestConfig, TokenPytestConfig 
@@ -32,12 +32,17 @@ def new_user():
     salt = bcrypt.gensalt()
     # Hashing the password
     hashed_password = bcrypt.hashpw(bytes, salt)
-    current_user = User(username='fkpr[kfkuh',hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'],
-    confirmation_email=False, reset_email_password=False)
+    current_user = User(username='fkpr[kfkuh',hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'])
 
     return current_user
     
+'''
+@pytest.fixture()
+def new_confirmation_(): 
 
+
+    return current_confirmationemail
+'''
 app = create_app(PytestConfig)
 ''' 
 migrate = Migrate(app, db)

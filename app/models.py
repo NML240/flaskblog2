@@ -23,7 +23,7 @@ Followers = db.Table('followers',
 
 # one to many relationship between both databases
 # The One relationship
-# Why is the database class different then most?
+# Why is the database class different then most? It just the type of class.
 class User(UserMixin, db.Model):
     # The primary key creates an unique value automatically each time starting at 1-infinity.   
     id = db.Column(db.Integer, primary_key=True)
@@ -31,18 +31,20 @@ class User(UserMixin, db.Model):
     hashed_password = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     
-    confirmation_email = db.Column(db.Boolean, default=False, nullable=False) 
-    reset_email_password = db.Column(db.Boolean, default=False, nullable=False)
-    # relationship connects the table the table. I can get the user id by going User.id.
+    # relationship connects the tables. I can get the user id by going User.id.
     # If I want to link the Posts database to the User database I can go Posts.user.id.
     
     # name this column afer the database from the many. 
     # Backref is = the current database I am using except lowercase except  
     # backref allows you to get the "user" object from a "posts" object (posts.user).
     # relationship creates the connection between the 2 databases.
+    # lazy?
     posts = db.relationship('Posts', backref='user', lazy=True)
-    
-  
+    # uselist=False creates a one to one relationship instead of a 1 to many when using a foreign key etc
+    confirmationemail = db.relationship('ConfirmationEmail', backref='user', uselist=False, lazy=True)
+
+
+
     '''
     Create Many to many relationship
     '''
@@ -121,7 +123,6 @@ class User(UserMixin, db.Model):
             
     # why @staticmethod? So I don't have to use the self variable 
     @staticmethod
-    # token is a placeholder for anything but specifically token?
     def verify_token(token):
         # Serializer passes in SECRET_KEY
         SECRET_KEY = 'temp_secret_key'
@@ -155,6 +156,19 @@ class User(UserMixin, db.Model):
         return '<User %r>' % self.username
 
 
+class ConfirmationEmail():
+    id = db.Column(db.Integer, primary_key=True)
+    registration_confirmation_email = db.Column(db.Boolean, default=False) 
+    reset_email_password = db.Column(db.Boolean, default=False)
+    id_user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # user_relationship = db.relationship('user', backref='confirmationemail', lazy=True)
+
+    def __repr__(self):
+        return '<ConfirmationEmail %r>' % self.registartion_confirmation_email
+
+    
+
 
 class Posts(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -168,13 +182,11 @@ class Posts(UserMixin, db.Model):
     # user.id represents the id from the User database. 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
-
+    '''
     def __init__ (self ,title: str,  content: str):
         self.title = title
         self.content = content   
-      
-
-
+    '''      
     
     # what does this do?
     def __repr__(self):

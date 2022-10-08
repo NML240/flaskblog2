@@ -3,15 +3,15 @@
 {% block title %} {{title}} {% endblock title %} 
 {% block post_content %}    
 
- 
+    {% if Posts_db != None %} 
 
-    {% for post_column in Posts_db %}
-        <!--  The line url_for... is = to ("/post/<int:post_id>") in routes.py-->
-        <!--  why do I need post_id = post_column.id'? posts.id? because I am looping to get the post.id -->    
-        <h2> <a href="{{ url_for ('postinfo.post', post_id = post_column.id) }}"> {{post_column.title}} </a> </h2>
-    {{ column.content}}
-    {% endfor %}
- 
+        {% for post_column in Posts_db %}
+            <!--  The line url_for... is = to ("/post/<int:post_id>") in routes.py-->
+            <!--  why do I need post_id = post_column.id'? posts.id? because I am looping to get the post.id -->    
+            <h2> <a href="{{ url_for ('postinfo.post', post_id = post_column.id) }}"> {{post_column.title}} </a> </h2>
+        {{ column.content}}
+        {% endfor %}
+    {% endif %}
     <!--make flash message work-->
     {%with messages = get_flashed_messages()%}
     {%if messages %}

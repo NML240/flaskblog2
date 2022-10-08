@@ -49,7 +49,7 @@ def edit_post(post_id):
         flash('You have edited your post successfully')
         return redirect(url_for('userinfo.home'))
         # todo I need to add so you can see the title and the post when editing it.  How?
-    return render_template('new_post.html', title='edit_post', form=form) 
+    return render_template('new_post.html', title='edit post', post_id=post_id, form=form) 
 
 
 # Can I go ("/post/<int:post_id>/delete") instead of below? 
@@ -65,7 +65,7 @@ def delete_post(post_id):
         db.session.commit()
         flash('You have deleted your post')
     # where should this link to?
-    return render_template('home.html', title='delete_post', form=form)
+    return render_template('home.html', title='delete post', post_id=post_id, form=form)
 
 # gives you ability to click on posts from home route and see the posts
 # create the post/number route

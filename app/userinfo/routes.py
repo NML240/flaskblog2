@@ -50,62 +50,19 @@ posts = {
 @userinfo.route("/home")
 def home():
     # .query.all() means I get all info from the database.   
-    #if there are no posts in the database
-    Posts_db = Posts.query.all() 
+    # use a try if the Posts_db is empty then it will skip it
+    try: 
+        Posts_db = Posts.query.all()
+    except:
+        Posts_db = None
+
     return render_template('home.html', Posts_db=Posts_db, title='home')  
 
-'''  
-# Check 1st 512 bytes and makes sure it is the correct extension.
-# By extension I just mean .jpg etc
-def validate_image(stream):
-    header = stream.read(512)
-    stream.seek(0)
-    # imghdr.what() function starts by looking if it matches the file type and returns the (file type) if not it returns (none). 
-    format = imghdr.what(None, header)
-    print("print format value",format)
-    if not format:
-        print("print not format value",format)
-        return None
-    return '.' + (format if format != 'jpeg' else 'jpg')
 
 
-# create the upload file path and send the file to where the file is saved
-@userinfo.route('/uploads/<filename>')
-def upload(filename):
-    # Send the file to " app.config'UPLOAD_PATH' " where the picture is saved 
-    return send_from_directory(['UPLOAD_PATH'], filename)
 
 
-# The send_to_profile function gets a list of files from os.listdir() and the location of the files is at ['UPLOAD_PATH'].
-# Then you pass the files on to profile.html
-@userinfo("/profile/<string:username>")
-def send_to__profile(username):
-    username = User.query.filter_by(username=username).first_or_404()
-    files = os.listdir(['UPLOAD_PATH'])
-    return render_template('profile.html', files=files)
 
-
-# check if right filename and extension if wrong extension 400    
-@userinfo('/profile/<string:username>', methods=['POST'])
-def upload_files(username):
-    # Example name = jim's.jpg. Get uploaded file from db and Check if has the correct name 
-    # get uploaded file and confirm it has a name.  
-    username = User.query.filter_by(username=username).first_or_404()
-    uploaded_file = request.files['profilepicture']
-    filename = secure_filename(uploaded_file.filename)
-    # filename = uploaded_file.filename. uploaded_file.filenam is the filename
-    # When you combine uploaded_file with filename you get the filename 
-    if filename != '':
-        # make sure the extensions are allowed
-        # get 400 error if wrong extension
-        file_ext = os.path.splitext(filename)[1]
-        if file_ext not in ['UPLOAD_EXTENSIONS']:
-            abort(400)
-        # Make the file publically aviable 
-        uploaded_file.save(os.path.join(['UPLOAD_PATH'], filename))
-    return redirect(url_for('profile.html')
-'''
- 
 
 
 @userinfo.route('/profile/<string:username>', methods = ['GET'])
@@ -216,34 +173,65 @@ def register():
         return redirect(url_for(('userinfo.home')))
     
     form = RegistrationForm()
+    # form.validate_on_submit(): are always the same line of render template to always allow a get request.
     if form.validate_on_submit():
     
-        username = form.username.data
-        if username is None:
+        forms_username = form.username.data
+        if forms_username is None:
             flash("Please fill in the username field")
-        email = form.email.data
-        if email is None:
+        forms_email = form.email.data
+        if forms_email is None:
             flash("Please fill in the email field")
-        plaintext_password = form.password.data
-        if plaintext_password is None:
+        forms_plaintext_password = form.password.data
+        if forms_plaintext_password is None:
             flash("Please fill in the password field")
-        confirm_password = form.confirm_password.data
-        if confirm_password is None:    
+        forms_confirm_password = form.confirm_password.data
+        if forms_confirm_password is None:    
             flash("Please fill in the confirm password field")
         
         # won't work redirect?
-        if plaintext_password != confirm_password:
+        if forms_plaintext_password != forms_confirm_password:
             flash("Please fill in the confirm password field")
 
+
+        # I don't think I should use for password for security reasons. ?
+        try:   
+            all_usernames = User.query.filter_by(username=form.username.data).all()
+        except: 
+            all_usernames = None                   
+        finally:
+            # do I want to redirect to register route? Yes
+            if all_usernames == forms_username:
+                flash ("The usesrname is already taken. Please select another username.")     
+                return redirect(url_for('userinfo.register')) 
+    
+
+        try:   
+            all_emails = User.query.filter_by(username=form.username.data).all()
+        except: 
+            all_usernames = None        
+                   
+        finally:
+            # do I want to redirect to register route?
+            if all_usernames == forms_username:
+                flash ("The usesrname is already taken. Please select another username.")     
+                return redirect(url_for('userinfo.register')) 
+
+
+
+
+
+
+        #todo important add try!
         # don't do this for passwords because this can reveal passwords. WHat about emails?
         all_usernames = User.query.filter_by(username=form.username.data).all()
-        all_emails = User.query.filter_by(username=form.username.data).all()
 
         # if value other then None iow you have a username or email in the database
-        if all_usernames:
+        if all_usernames == forms_username:
             flash ("The usesrname is already taken. Please select another username.")
+            # do I want to redirect to register route?
             return redirect(url_for('userinfo.register')) 
-        if all_emails:    
+        if all_emails == forms_email:    
             flash("The email is already taken. Please select another email.")
             return redirect(url_for('userinfo.register')) 
         ''' 
@@ -261,11 +249,11 @@ def register():
         # Hashing the password
         hashed_password = bcrypt.hashpw(bytes, salt)
         # Use this code if adding code to the database the first time.
-        user = User(username=username, email=email, hashed_password=hashed_password)
+        user = User(username=forms_username, email=forms_email, hashed_password=hashed_password)
         db.session.add(user)
         db.session.commit()
         
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=forms_email).first()
         flash('You have almost registered successfully. Please click the link in your email to complete the registeration.')        
         send_account_registration_email(user) 
         return redirect(url_for('userinfo.login'))
@@ -305,9 +293,9 @@ def login():
  
  
         # example password
-        plaintext_password = form.password.data
+        forms_plaintext_password = form.password.data
         # converting password to array of bytes
-        bytes = plaintext_password.encode('utf-8')
+        bytes = forms_plaintext_password.encode('utf-8')
         # generating the salt
         salt = bcrypt.gensalt()
         # Hashing the password
@@ -336,15 +324,15 @@ def login():
             To determine if the URL is relative or absolute, parse it with Werkzeug's url_parse() function and then check 
             if the netloc component is set or not.
             
-            1st)
+            1st value)
 	        If the login URL does not have a next argument, this is when you go to the login page and login. 
             You you will be redirected to the home page.
 
-            2nd)
+            2nd value)
             if the user is not logged in and tries to go to a route with @login_required, then for example post/new_post ,
             next is = login?next=/post/upload . (This is relative import).
            
-            3rd)
+            3rd value)
             To protect from redirect to any other website, in the module it checks if next is relative or full url. 
             if it's full domain then, the user is redirected to home page 
             

@@ -1,7 +1,6 @@
 from flask_migrate import Migrate
    
 
-# from app.models import User
 
 
 
@@ -16,7 +15,7 @@ app.config.from_object(Config)
 
 # to run the code
 '''
-To setup the app to run  from a specif file type the below line. Only do Once.
+To setup the app to run from a specif file type the below line. Only do Once.
 $env:FLASK_APP="wsgi"
 To use the dubugger use this line.
 $env:FLASK_ENV="development"
