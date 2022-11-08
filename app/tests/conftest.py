@@ -1,10 +1,11 @@
+import email
 import bcrypt 
 import pytest 
 import os 
-from app.models import User, ConfirmationEmail
+from app.models import User#, ConfirmationEmail
 
 from app import create_app, db
-from app.config import PytestConfig, TokenPytestConfig 
+from app.config import PytestConfig#, TokenPytestConfig 
 from flask_migrate import Migrate 
 
 
@@ -17,14 +18,16 @@ from flask_migrate import Migrate
 # use "@pytest.fixture(scope='module')" when in a different file or folder?
 
 
+
+
+
 @pytest.fixture()
 def new_user(): 
     '''
     Given a User model
     When a new user is being created 
     Check the User database columns
-    '''
-    # example password
+    '''    
     plaintext_password = 'pojkp[kjpj[pj'
     # converting password to array of bytes
     bytes = plaintext_password.encode('utf-8')
@@ -32,17 +35,25 @@ def new_user():
     salt = bcrypt.gensalt()
     # Hashing the password
     hashed_password = bcrypt.hashpw(bytes, salt)
-    current_user = User(username='fkpr[kfkuh',hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'])
+    current_user = User(username='fkpr[kfkuh',
+    hashed_password=hashed_password, email=os.environ['TESTING_EMAIL_USERNAME'])
 
     return current_user
-    
-'''
+"""
 @pytest.fixture()
-def new_confirmation_(): 
-
-
-    return current_confirmationemail
-'''
+def new_confirmation_email():
+    '''
+    Given a User model
+    When a  new confirmation_email is being created 
+    Check the confirmation_email database columns
+    '''
+    registration_confirmation_email = False
+    reset_email_password = False
+    
+    current_confirmation_email = ConfirmationEmail(registration_confirmation_email=registration_confirmation_email,  
+    reset_email_password=reset_email_password) 
+    return current_confirmation_email
+"""
 app = create_app(PytestConfig)
 ''' 
 migrate = Migrate(app, db)
@@ -65,7 +76,7 @@ def runner():
 
 
 
-
+"""
 
 token_app = create_app(TokenPytestConfig)
 
@@ -85,7 +96,7 @@ def token_runner():
     return token_app.test_cli_runner()
 
 # Why can't the code below be located here?
-"""
+
 @pytest.fixture() 
 def init_database_for_tokens(new_user):
     # Create the database and the database table
@@ -108,4 +119,6 @@ def init_database_for_tokens(new_user):
     verify_token = User.verify_token(token)
     print(verify_token)
     assert verify_token != None 
-"""
+
+
+""" 

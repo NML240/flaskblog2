@@ -39,6 +39,9 @@ class Config(object):
     # need this to prevent error in redmail. 
     SECURITY_EMAIL_SENDER = os.environ['EMAIL_USERNAME']
     
+    # need this to prevent error in redmail. 
+    SECURITY_EMAIL_SENDER = "no-reply@example.com"
+    
     
     
     # Is the same valie as ['DEBUG'] =  
@@ -92,11 +95,20 @@ class PytestConfig(Config):
     # I get 'DATABASE_URI' sqlite:///app.db or I get os.path.join(basedir, 'app.db') gives me app.db route
     # "\" is used as newline 
 
+'''
 class TokenPytestConfig(Config): 
     
     # When False this disables wtf forms. This makes POST request work for pytest when False.
     WTF_CSRF_ENABLED = False
     TESTING = True	
     #Debug needs to = False or I will get an error caused by create_all(...) vs delete_all(...).
-    DEBUG = False 
+    DEBUG = False
+'''
 
+
+
+'''
+    from redmail import outlook
+    outlook.username = os.environ['EMAIL_USERNAME']
+    outlook.password  = os.environ['EMAIL_PASSWORD']
+    '''

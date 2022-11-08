@@ -15,6 +15,15 @@ from app import db
 # https://stackoverflow.com/questions/63231163/what-is-the-usermixin-in-flask
 
 
+
+
+
+
+
+
+
+
+
 # many to many relationship
 Followers = db.Table('followers',
     # I have 2 foreign keys from the User table.  
@@ -27,10 +36,13 @@ Followers = db.Table('followers',
 class User(UserMixin, db.Model):
     # The primary key creates an unique value automatically each time starting at 1-infinity.   
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    hashed_password = db.Column(db.String(128), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    
+    #check if unique blocks 2 same usernames
+    # I can't have Nullable=False because it will make me add the columns everytime I add a column in user
+    username = db.Column(db.String(80), unique=True)
+    hashed_password = db.Column(db.String(128))
+    email = db.Column(db.String(120), unique=True)
+    registration_confirmation_email = db.Column(db.Boolean, default=False) 
+    reset_email_password = db.Column(db.Boolean, default=False)        
     # relationship connects the tables. I can get the user id by going User.id.
     # If I want to link the Posts database to the User database I can go Posts.user.id.
     
@@ -41,13 +53,16 @@ class User(UserMixin, db.Model):
     # lazy?
     posts = db.relationship('Posts', backref='user', lazy=True)
     # uselist=False creates a one to one relationship instead of a 1 to many when using a foreign key etc
-    confirmationemail = db.relationship('ConfirmationEmail', backref='user', uselist=False, lazy=True)
-
-
+    # relationship creates a connection between the foreign key table and the primary key table 
+    # is it okay as the same name as the table?
+    # confirmation_email = db.relationship('ConfirmationEmail', backref='user', uselist=False, lazy=True)
+    
+    
 
     '''
     Create Many to many relationship
     '''
+    
     # relationship creates the connection by the database? 
     followed = db.relationship(
         # 'User' is the right table and left table
@@ -156,38 +171,49 @@ class User(UserMixin, db.Model):
         return '<User %r>' % self.username
 
 
-class ConfirmationEmail():
+'''
+class ConfirmationEmail(UserMixin, db.Model):
+    # m primary key = email    
     id = db.Column(db.Integer, primary_key=True)
+    # foreign key?
+    email = db.Column(db.String(120), unique=True)
+
     registration_confirmation_email = db.Column(db.Boolean, default=False) 
-    reset_email_password = db.Column(db.Boolean, default=False)
-    id_user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    # user_relationship = db.relationship('user', backref='confirmationemail', lazy=True)
+    reset_email_password = db.Column(db.Boolean, default=False)    
+    # The foreign key is the child to the adult relationship/connection
+    # if I have a class like SomeTable when using the foreign key use 'some_table' 
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
 
     def __repr__(self):
-        return '<ConfirmationEmail %r>' % self.registartion_confirmation_email
-
-    
+        return '<confirmation_email %r>' % self.registartion_confirmation_email
+'''
 
 
 class Posts(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), unique=True, nullable=False)
     # need a better name then content
-    content = db.Column(db.String(120), unique=True, nullable=False) 
-    # gives a time of when the post is posted. Everyone sees the same time based on daylight savings  
+    content = db.Column(db.String(120), nullable=False) 
+    # gives a  of when the post is posted. Everyone sees the same time based on daylight savings  
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     # always create the name of the column of the other database except lowercase and end it with _id
     # The foreign key creates the an column called user.id. This links the two tables. IOW the foreign key is the primary key just in another table.
     # user.id represents the id from the User database. 
+    # foreign key has to be added.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
-    '''
-    def __init__ (self ,title: str,  content: str):
-        self.title = title
-        self.content = content   
-    '''      
     
     # what does this do?
     def __repr__(self):
         return '<Posts %r>' % self.title
+
+
+
+
+
+
+
+
+
+

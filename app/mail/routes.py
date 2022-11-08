@@ -1,6 +1,6 @@
 from flask import Blueprint, flash, render_template, redirect, url_for, render_template, request
 from flask_login import login_user, login_required, current_user 
-from app import db, mail 
+from app import db, mail, email 
 # make bcrypt and db work 
 
 import bcrypt
@@ -9,11 +9,11 @@ import bcrypt
 # itsdangergous... gives a time sensitive message 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from app.models import User, ConfirmationEmail 
+from app.models import User#, ConfirmationEmail 
 from app.userinfo.forms import (RegistrationForm, UpdateAccountForm, EmptyForm)
 from app.mail.forms import  (RequestResetPasswordForm)
 
-
+from redmail import outlook
 
 
 import os
@@ -43,10 +43,10 @@ def send_account_registration_email(user):
 
 
 
-from redmail import outlook
 
+#from redmail import EmailSender
+# email = EmailSender(host="smtp.mail.com", port=587)
  
-
 # why User.create_token(), because it is an method? 
 def send_account_registration_email(user):
     # should I use a form?
@@ -57,7 +57,7 @@ def send_account_registration_email(user):
     # needed for outlook.send for outlook
     outlook.send(
             subject="register account",
-            sender="testingr555@outlook.com", 
+            sender=os.environ['EMAIL_USERNAME'],
             receivers=[user.email],
             # remember url for won't work for some reason.
             html = render_template('verify_email.html', title='verify email',token=token, form=form, _external=True) 
@@ -88,34 +88,25 @@ def send_reset_password_email(user):
 # This route is always a get request!!!
 # verify the users email or after you clicked on the email from the recieved email
 # better name for function maybe change to verify?
-@mail.route("/verified_email<token>", methods = ['POST', 'GET']) 
+@mail.route("/verified_email<token>", methods = ['GET']) 
 def verified_email(token):      
-    form = EmptyForm()
-    if request.method == 'GET' : # and form.validate():
-        user = User.verify_token(token)
-        if user is None: # why does this not work pytest later??
-            flash('This is an invalid or expired token2')
-            return redirect(url_for('userinfo.home'))
-        flash('Delete this flash message. Testing GET request in this route')    
-        
+    user = User.verify_token(token)
+    if user is None: # why does this not work pytest later??
+        flash('This is an invalid or expired token2')
+        return redirect(url_for('userinfo.home'))   
     
-        user = User.query.filter_by(username=user.username).first() 
-        registration_confirmation_email = user.registration_confirmation_email
 
-        # for testing delete after should be false. 
-        # why does this never execute ?
-        if registration_confirmation_email is True:
-            flash('You have already clicked on the confirmation email. You can now login')
-            return redirect(url_for('userinfo.home'))
+    # Prevents you from registering twice. Is this needed?
+    if user.registration_confirmation_email == True:
+        flash('You have already clicked on the confirmation email. You can now login')
+        return redirect(url_for('userinfo.home'))
+
+    user.registration_confirmation_email = True 
+    db.session.commit()
+    
+    form = EmptyForm()
+    return render_template('verified_email.html', title='verified email', form=form)
         
-
-        registration_confirmation_email = True
-        registration_confirmation_email = ConfirmationEmail(registration_confirmation_email=registration_confirmation_email)
-        db.session.add(registration_confirmation_email)
-        db.session.commit()
-  
-        return render_template('verified_email.html', title='verified email', form=form)
-
 
 
 """ 

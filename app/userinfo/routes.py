@@ -164,6 +164,26 @@ def make_password_contain_special_characters(confirm_password):
       return make_password_contain_special_characters
 
 
+def check_if_the_user_is_already_registered(forms_username, forms_email):
+    
+    # do I need a try?
+    # I don't need passwords because people can have the same password
+    try:   
+        users = User.query.filter_by(username=forms_username).all()
+    except: 
+        users = None # what if username is None?
+    finally:
+        # do I want to redirect to register route? 
+    
+        for all_users in users: 
+            if all_users.username == forms_username:
+                flash ("The username is already taken. Please select another username.")     
+                return redirect(url_for('userinfo.register')) 
+
+        for all_users in users:
+            if all_users.email == forms_email:    
+                flash("The email is already taken. Please select another email.")
+                return redirect(url_for('userinfo.register')) 
 
 @userinfo.route("/register", methods = ['POST', 'GET'])
 def register():
@@ -176,6 +196,8 @@ def register():
     # form.validate_on_submit(): are always the same line of render template to always allow a get request.
     if form.validate_on_submit():
     
+
+        # if NOT NULL do I need this? check wtf forms.
         forms_username = form.username.data
         if forms_username is None:
             flash("Please fill in the username field")
@@ -193,47 +215,9 @@ def register():
         if forms_plaintext_password != forms_confirm_password:
             flash("Please fill in the confirm password field")
 
-
+        # do I need a try?
         # I don't think I should use for password for security reasons. ?
-        try:   
-            all_usernames = User.query.filter_by(username=form.username.data).all()
-        except: 
-            all_usernames = None                   
-        finally:
-            # do I want to redirect to register route? Yes
-            if all_usernames == forms_username:
-                flash ("The usesrname is already taken. Please select another username.")     
-                return redirect(url_for('userinfo.register')) 
-    
-
-        try:   
-            all_emails = User.query.filter_by(username=form.username.data).all()
-        except: 
-            all_usernames = None        
-                   
-        finally:
-            # do I want to redirect to register route?
-            if all_usernames == forms_username:
-                flash ("The usesrname is already taken. Please select another username.")     
-                return redirect(url_for('userinfo.register')) 
-
-
-
-
-
-
-        #todo important add try!
-        # don't do this for passwords because this can reveal passwords. WHat about emails?
-        all_usernames = User.query.filter_by(username=form.username.data).all()
-
-        # if value other then None iow you have a username or email in the database
-        if all_usernames == forms_username:
-            flash ("The usesrname is already taken. Please select another username.")
-            # do I want to redirect to register route?
-            return redirect(url_for('userinfo.register')) 
-        if all_emails == forms_email:    
-            flash("The email is already taken. Please select another email.")
-            return redirect(url_for('userinfo.register')) 
+        check_if_the_user_is_already_registered(forms_username, forms_email)
         ''' 
         make_password_contain_capital(confirm_password)
         make_password_contain_number(confirm_password):
@@ -265,8 +249,12 @@ def register():
     return render_template('register.html',title='register', form=form)
 
 
-# flash(You have almost registered successfully. Please click the link in your email to complete the registeration.) appears after I click on the registraation email?
 
+# if the user does not exist then you do not register
+def check_if_user_is_not_registered(username):
+    if not username:
+        flash('You have not registered yet. Please register')
+        return redirect(userinfo.register)
 
 
 @userinfo.route("/login",methods = ['POST', 'GET'])
@@ -278,86 +266,57 @@ def login():
 
     form = LoginForm()
     if form.validate_on_submit():
-        username = form.username.data  
-        user = User.query.filter_by(username=username).first()
+        
+        forms_username = form.username.data           
+        user = User.query.filter_by(username=forms_username).first()
+        check_if_user_is_not_registered(user.username)
 
-
-        # why does this execute even if true?
-        confirm_email = user.confirmation_email
-        flash(confirm_email)
-        if confirm_email == False:
-            flash('You have almost registered successfully. Please click the link in your email to complete the registeration.')  
+        registration_confirmation_email = user.registration_confirmation_email
+        if registration_confirmation_email == False:
+            flash('You have almost registered successfully. Please click the link in your email to complete the registeration.')
+            flash(registration_confirmation_email)
             return redirect(url_for('userinfo.home'))
-
-
  
- 
-        # example password
-        forms_plaintext_password = form.password.data
-        # converting password to array of bytes
-        bytes = forms_plaintext_password.encode('utf-8')
-        # generating the salt
-        salt = bcrypt.gensalt()
-        # Hashing the password
-        hashed_password = bcrypt.hashpw(bytes, salt)
-        
-        
- 
-        # query.filter_by(...).first gets the first result in the database query
-        # check if username and password inputted in login forms matches the database
-        # db_username = User.query.filter_by(username=username).first()
-       
 
-        # Using bcrypt compare password from the form vs the current user's hashed password from the database
-        # if user exists and check passwords
-       
-        database_hashed_password = User.query.filter_by(hashed_password=hashed_password).first()
-        if user and hashed_password == database_hashed_password:
-           
+        if not user.hashed_password and User: 
+            flash('You have not typed in your password correctly. Please retype it.')
+            return redirect(url_for('userinfo.login'))           
             
-            # login_user(user, remember=form.remember.data)
-            login_user(user)
-            # log the user in remember it is a boolean. Where do I get form.remember.data?
-            flash('You have logged in successfully') 
-            '''           
-            The 'next' variable can have 3 values
+        # login_user(user, remember=form.remember.data)
+        login_user(user)
+        flash('You have logged in successfully') 
+        '''           
+            
             To determine if the URL is relative or absolute, parse it with Werkzeug's url_parse() function and then check 
-            if the netloc component is set or not.
+            if the netloc component is set or not. What is netloc?
             
+            next = '/login?next=/index', index is just a route. 
+            The 'next' variable can have 3 values
+
             1st value)
-	        If the login URL does not have a next argument, this is when you go to the login page and login. 
-            You you will be redirected to the home page.
+	        If the login URL does not have a next argument you will be logged in and redirected to the home page.
+            iow's next = '/login?next=/'. 
+            
+            How would the other 2 situations happen?
 
             2nd value)
             if the user is not logged in and tries to go to a route with @login_required, then for example post/new_post ,
-            next is = login?next=/post/upload . (This is relative import).
+            iow's 'next = login?next=/post/new_post' . (This is relative import).
            
             3rd value)
             To protect from redirect to any other website, in the module it checks if next is relative or full url. 
-            if it's full domain then, the user is redirected to home page 
-            
-            '''
-       
-            next_page = request.args.get('next')
-            if not next_page or url_parse(next_page).netloc != '':
-                next_page = url_for('userinfo.home')
-            return redirect(next_page)
-
+            if it's full domain then, the user is redirected to home page. 
+        '''
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('userinfo.home')
+        return redirect(next_page)
+ 
     return render_template('login.html', title='login', form=form)
          
-        
-        # delete? hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        # why won't work db_hashed_password = User.query.filter_by(hashed_password=hashed_password).first()?
-    '''
+ 
 
-        # User.password is the password in the database ? 
-        matching_password_with_db = bcrypt.check_password_hash(User.password, form.password.data)
-        # if username and password are already in the database login user
-        if db_username and matching_password_with_db:
-            user_db = User(db_username=db_username, db_hashed_password=hashed_password)
-            login_user(user_db) 
-            flash('You have logged in successfully') 
-        '''
+
 
 
 
