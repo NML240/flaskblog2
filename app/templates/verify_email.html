@@ -8,14 +8,8 @@
 {% block title %}  {{title}}  {% endblock title %} 
 {% block content %}
         <!-- do I need a POST request below? No a POST request won't work.-->
-        <form validate action="" id="verify_email" method="GET">
                 {{ form.csrf_token }}     
                 <h2> To reset your password, visit the following link: </h2>
                 <h2> <a href= "{{ url_for('mail.verified_email', token=token, _external=True) }}"> click here to register</a> </h2>
                 <h2> If you did not make this request then simply ignore this email and no changes will be made. </h2> 
-        </form>
-        
-
- 
-
 {% endblock content %}

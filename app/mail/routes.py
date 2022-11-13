@@ -9,9 +9,9 @@ import bcrypt
 # itsdangergous... gives a time sensitive message 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from app.models import User#, ConfirmationEmail 
-from app.userinfo.forms import (RegistrationForm, UpdateAccountForm, EmptyForm)
-from app.mail.forms import  (RequestResetPasswordForm)
+from app.models import User
+from app.mail.forms import RequestResetPasswordForm, EmptyForm, ResetPasswordForm
+
 
 from redmail import outlook
 
@@ -25,20 +25,8 @@ mail = Blueprint('mail', __name__)
 
 
 
-"""
 
-def send_account_registration_email(user):
 
-    # 'Email registration' the title
-    msg = Message ('Email registration',
-        sender='noreply@demo.com', 
-        recipients=[user.email]) 
-    msg.body = f'''To complete the registration please click on the link:
-    {url_for('email.verified_email', token=token, _external=True)}
-    If you did not make this request then simply ignore this email and no changes will be made. 
-    ''' 
-    mail.send(msg)
-""" 
 
 
 
@@ -47,42 +35,26 @@ def send_account_registration_email(user):
 #from redmail import EmailSender
 # email = EmailSender(host="smtp.mail.com", port=587)
  
-# why User.create_token(), because it is an method? 
+# why user.create_token(), because it is an method? 
 def send_account_registration_email(user):
     # should I use a form?
     form = EmptyForm()
     # the function creates the randomly generated token
-    
     token = user.create_token() # don't need to import methods just the class. Confirm?
     # needed for outlook.send for outlook
     outlook.send(
             subject="register account",
-            sender=os.environ['EMAIL_USERNAME'],
+            sender=os.environ['EMAIL_USERNAME'], 
             receivers=[user.email],
             # remember url for won't work for some reason.
-            html = render_template('verify_email.html', title='verify email',token=token, form=form, _external=True) 
+            html = render_template('verify_email.html', title='verify email', token=token, form=form, _external=True) 
     )
-""" 
+ 
 
-def send_reset_password_email(user):  
-    # get the function from models.py
-    token = user.create_token()
-    # What is Message and sender and recipients mssg.body? and f''' ''' string and _external=True?
-    # when passing into a f string use 1 "{}" curly brace instead of 2 "{{}}"
-    msg = Message('Password Reset Request', 
-        sender='noreply@demo.com', 
-        recipients=[user.email])             
-    # _external – if set to True, an absolute URL is generated. Server address can be changed via 
-    # Absolute import is  https://example.com/my-page relative URL is  /my-page 
-    # body gives the body of the message, iow the entire message 
-    # link to reset_password.html               
-    msg.body = f'''To reset your password, visit the following link:
-    {url_for('userinfo.request_reset_password', token=token, _external=True)}
-    If you did not make this request then simply ignore this email and no changes will be made. 
-    '''
-    mail.send(msg)
 
-""" 
+
+
+  
 
 
 # This route is always a get request!!!
@@ -92,7 +64,7 @@ def send_reset_password_email(user):
 def verified_email(token):      
     user = User.verify_token(token)
     if user is None: # why does this not work pytest later??
-        flash('This is an invalid or expired token2')
+        flash('This is an invalid or expired token')
         return redirect(url_for('userinfo.home'))   
     
 
@@ -106,34 +78,49 @@ def verified_email(token):
     
     form = EmptyForm()
     return render_template('verified_email.html', title='verified email', form=form)
-        
 
 
-""" 
 
+
+
+
+
+def send_reset_password_email(user):
+    # get the function from models.py
+    token = user.create_token()
+    # _external – if set to True, an absolute URL is generated. Server address can be changed via 
+    # Absolute import is  https://example.com/my-page relative URL is  /my-page 
+    form = EmptyForm()
+    outlook.send(        
+        subject='Password Reset Request', 
+        sender=os.environ['EMAIL_USERNAME'],  # change to noreply...?
+        receivers=[user.email],   
+        html = render_template('send_reset_password_email.html', title='send reset password email', token=token, form=form, _external=True)
+    )
+    
 # creates form for email for your password reset
 # better name
 @mail.route("/request_reset_password", methods = ['POST', 'GET'])
 def request_reset_password():
-
     form = RequestResetPasswordForm()
     if form.validate_on_submit():   
-        email = form.email.data
-        if email is None:      
-            flash("Please fill in the email field"
         
-        user = User.query.filter_by(email=email).first()
+        # do i need? this check wtf forms
+        forms_email = form.email.data
+        try: 
+            user = User.query.filter_by(email=forms_email).first()
+        except:
+            user = None
         
-        # if the user is already verified.  
-        confirmation_email = user.confirmation_email
-        if confirmation_email is True:
-            # flash is not working here
-            flash('You already verified your email!')
-            return redirect(url_for('userinfo.home')) 
+        # I think I should combine this into 2 . Do I need "not user.registration_confirmation_email"?
+        # if the user is not registered and you have not clicked on the registration email.  
+        if not user.email and not user.registration_confirmation_email:
+            flash('Your email is not registered')
+            return redirect(url_for('mail.request_reset_password')) 
 
-        # should I check if the email exists? Or should I not for security purposes?
-        send_reset_password_email(user)
+
         flash("An email has been sent with instructions to your email to reset the password") 
+        send_reset_password_email(user)
         return redirect(url_for('userinfo.home'))
     return render_template('request_reset_password.html', title='request reset password', form=form)
 
@@ -142,47 +129,46 @@ def request_reset_password():
 
 # reset password after recieved the token in a email
 # create form for password field and confirm password
-@mail.route("/reset_password/<token>", methods = ["GET"] )
+@mail.route("/reset_password/<token>", methods = ['GET', 'POST'] )
 def reset_password(token):
  
-    form = UpdateAccountForm()
+    form = ResetPasswordForm()
+
     if form.validate_on_submit():   
-        # confused by adding User?
-        # User is the name of the 1st database
-        user = User.(token)
+        user = User.verify_token(token)
         if user is None:
             flash('That is an invalid or expired token', 'warning')
             return redirect(url_for('request_reset_password'))    
-        password = form.password.data
-        if password is None: 
-            flash("Please fill in the password field")
-        confirm_password = form.confirm_password.data
-        if confirm_password is None:    
-            flash("Please fill in the confirm password field")
-        # get data from wtf forms iow get user inputted data from the forms
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gesalt())
-        # update information already in the database 
-        # do I need add?
+        
+        # do I need this? check wtf forms
+        forms_plaintext_password = form.password.data
+        forms_confirm_password = form.confirm_password.data
+        
+        if forms_plaintext_password != forms_confirm_password:
+            flash("The passwords fields do not match" ) # I need better phrases. 
+         
+        # example password
+        plaintext_password = form.password.data
+        # converting password to array of bytes
+        bytes = plaintext_password.encode('utf-8')
+        # generating the salt
+        salt = bcrypt.gensalt()
+        # Hashing the password
+        hashed_password = bcrypt.hashpw(bytes, salt)        
+        
 
-
-
-
-
-        # make confirmation_email True
-        # Use this code if adding code to the database that is not the first time  
-        user.confirmation_email = True 
+        user = User(hashed_password=hashed_password)
         db.session.add(user)
         db.session.commit()
-    
 
-        db_info = User(hashed_password=hashed_password)
-        db.session.add(user_password=db_info)
-        db.session.commit()
-        
-    # why does render_template need to go not in the POST if statement?? 
+        flash('you have changed your password successfully')
+        return redirect(url_for('userinfo.home')) 
+
+
+    # why does render_template need to go not in the POST if statement?? Confirm
     return render_template('reset_password.html', title='reset password', token=token, form=form) 
 
-"""
+
 
 
 

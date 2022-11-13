@@ -52,11 +52,11 @@ def home():
     # .query.all() means I get all info from the database.   
     # use a try if the Posts_db is empty then it will skip it
     try: 
-        Posts_db = Posts.query.all()
+        posts = Posts.query.all()
     except:
-        Posts_db = None
+        posts = None
 
-    return render_template('home.html', Posts_db=Posts_db, title='home')  
+    return render_template('home.html', posts=posts, title='home')  
 
 
 
@@ -75,7 +75,7 @@ def profile(username):
     posts.id
     '''
 
-    return render_template('profile.html', title='profile', username=user.username)
+    return render_template('profile.html', title='profile', user=user)
     
 
 
@@ -325,7 +325,7 @@ def login():
 @login_required
 def logoff():
     logout_user()
-    return redirect('home.html')
+    return redirect (url_for('userinfo.home.html'))
                   
 
 

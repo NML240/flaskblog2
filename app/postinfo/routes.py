@@ -14,21 +14,19 @@ postinfo = Blueprint('postinfo', __name__)
 # why do I need to link to the name of the function in the html? Ex new_post 
 def new_post(): 
     form = Postform()
-    if request.method == 'POST' and form.validate():
+    if form.validate_on_submit():
         title = form.title.data
         content = form.content.data
-        # current_user variable gives me the current database information of the User.
-        # current_user.id gives me the id of the User column id.
         # This works because I am using the user.id for the foreign key in the Post database.                 
-        db_post_info = Posts(title=title, content=content, user_id=current_user.id)
-        db.session.add(db_post_info)  
+        posts = Posts(title=title, content=content, user_id=current_user.id)
+        db.session.add(posts)  
         db.session.commit()
 
         flash('You have posted successfully')
         return redirect(url_for('userinfo.home'))
 
     
-    return render_template('new_post.html',title='new_post', form=form)
+    return render_template('new_post.html',title='new post', form=form)
 
 
 
@@ -39,11 +37,11 @@ def new_post():
 @login_required
 def edit_post(post_id): 
     form = Postform() 
-    if request.method == 'POST' and form.validate(): 
+    if form.validate_on_submit(): 
         title = form.title.data
         content = form.content.data 
-        db_post_info = Posts(title=title, content=content, user_id=current_user.id)
-        db.session.add(db_post_info)  
+        posts = Posts(title=title, content=content, user_id=current_user.id)
+        db.session.add(posts)  
         # date_posted = form.content.data
         db.session.commit()
         flash('You have edited your post successfully')
@@ -57,7 +55,7 @@ def edit_post(post_id):
 @login_required
 def delete_post(post_id): 
     form = Postform()
-    if request.method == 'POST' and form.validate():  
+    if form.validate_on_submit():
         title = form.title.data
         content = form.content.data 
         db_post_info = Posts(title=title, content=content)

@@ -12,22 +12,28 @@
         <!--before random image <img src="img_girl.jpg" alt="Girl in a jacket"> -->
         <!-- Now image from the database -->
          <!-- move below to followers.html -->    
-        {% if current_user.is_authenticated and current_user.username != username % %}
+        {% if current_user.is_authenticated and current_user.username != user.username %}
                 <!--  followed button -->
-	        <button type="button"> <h2> <a href="{{ url_for('userinfo.follow, username=username) }}">  </a> </h2>  </button> 
+	        <button type="button"> <h2> <a href="{{ url_for('userinfo.follow', username=username) }}">  </a> </h2>  </button> 
                 {% if is.followed == True  %}       
-	        <!-- unfollow button -->
-                <button type="button"> <h2> <a href="{{ url_for('userinfo.unfollow, username=username) }}">  </a> </h2> </button> 
-        {% if current_user.is_authenticated and current_user.username != username  %}
+	                <!-- unfollow button -->
+                        <button type="button"> <h2> <a href="{{ url_for('userinfo.unfollow', username=username) }}">  </a> </h2> </button> 
+                {% endif %}
+        {% endif %}
+
+        
+        
+
+        <!-- {% if current_user.is_authenticated and current_user.username != user.username  %} -->
         
                 <!-- I don't need this line because I am not updating profile so far
                         <h2> <a href="{{ url_for('userinfo.update_profile', username=username) }}"> update profile info </a> </h2> -->
-        {% endif %}
+        <!-- {% endif %} -->
                  <!-- List of all the postinfo of a user -->
-                {{ (username) }}
+                {{ (user.username) }}
         <!-- checks to make sure I have posts -->
         {% if current_user.content != None %}
-                {% for column in username.id %}
+                {% for column in current_user.content %}
                         {{ (column.email) }}
                         {{ (column.title) }}
                         {{ (column.content) }}

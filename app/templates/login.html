@@ -12,6 +12,9 @@
         {{ render_field(form.password) }}
         <input type="submit" value="Submit">  
 
+
+
+
         <!--make flash message work-->
         {%with messages = get_flashed_messages()%}
         {%if messages %}
@@ -22,11 +25,9 @@
                 </ul>
         {% endif %}
         {% endwith %}
-
-
 </form>
-<!-- todo make below blue and @mail.route("/request_reset_password", methods = ["POST, GET"] ) -->
 
+<h1> <a href="{{ url_for('mail.request_reset_password')  }}">  forgot password? </a> </h1>
 
  {% endblock content %}
 

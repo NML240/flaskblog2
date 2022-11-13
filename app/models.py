@@ -42,7 +42,6 @@ class User(UserMixin, db.Model):
     hashed_password = db.Column(db.String(128))
     email = db.Column(db.String(120), unique=True)
     registration_confirmation_email = db.Column(db.Boolean, default=False) 
-    reset_email_password = db.Column(db.Boolean, default=False)        
     # relationship connects the tables. I can get the user id by going User.id.
     # If I want to link the Posts database to the User database I can go Posts.user.id.
     
@@ -122,6 +121,9 @@ class User(UserMixin, db.Model):
         # Posts.timestamp.desc lists the posts in order in desc order of when they were posted.
         return followed.union(own).order_by(Posts.timestamp.desc())
 
+
+
+    # obvious question how does this get current_id?
 
     # get_reset_token = create_token
     # def verify_reset_token(token) = verify_token 
