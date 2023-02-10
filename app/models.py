@@ -42,6 +42,8 @@ class User(UserMixin, db.Model):
     hashed_password = db.Column(db.String(128))
     email = db.Column(db.String(120), unique=True)
     registration_confirmation_email = db.Column(db.Boolean, default=False) 
+    
+    profile_pic_name = db.Column(db.String())
     # relationship connects the tables. I can get the user id by going User.id.
     # If I want to link the Posts database to the User database I can go Posts.user.id.
     
@@ -204,18 +206,15 @@ class Posts(UserMixin, db.Model):
     # user.id represents the id from the User database. 
     # foreign key has to be added.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    
+ 
+    # storing search index and query? Ex "This string is the search/index terms"
+    __searchable__ = ['document']
+
     # what does this do?
     def __repr__(self):
         return '<Posts %r>' % self.title
 
 
 
-
-
-
-
-
-
+ 
 

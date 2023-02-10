@@ -34,8 +34,11 @@ mail = Blueprint('mail', __name__)
 
 #from redmail import EmailSender
 # email = EmailSender(host="smtp.mail.com", port=587)
- 
 # why user.create_token(), because it is an method? 
+
+
+# send account verification email for registration
+# This function is in /register route
 def send_account_registration_email(user):
     # should I use a form?
     form = EmptyForm()

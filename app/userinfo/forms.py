@@ -5,7 +5,7 @@ from wtforms.fields.html5 import EmailField
 from wtforms import validators
 from wtforms.fields.simple import FileField
 from wtforms.validators import DataRequired, Length, ValidationError
-from flask_wtf.file import FileField, FileAllowed  
+from flask_wtf.file import FileField, FileRequired, FileAllowed
 from app.models import User
 
 
@@ -74,28 +74,18 @@ class UpdateAccountForm(FlaskForm):
 
 
 class EmptyForm(FlaskForm):
+    pass
+
+
+
+
+
+# todo move later
+class FileForm(FlaskForm):
+    
+    image_filename = FileField('image', validators=
+    [FileRequired() ,FileAllowed(['jpg', 'png'], 'Images only!')  ])
     submit = SubmitField('Submit')
 
 
-
-
-
-
-
-
-
-
-
-'''
-class Postform(FlaskForm):
-    title = StringField('title', validators=[DataRequired('title is required')],)  
-    content = TextAreaField('content', validators=[DataRequired('content is required')],) # need better phrasing then 'content is required'
-
-
-class ProfileForm(FlaskForm): 
-    picture = FileField('profilepicture', validators=[FileAllowed(['jpg', 'png'])]
-'''  
-
-
-
-
+ 

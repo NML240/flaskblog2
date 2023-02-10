@@ -1,7 +1,10 @@
+ 
+
+
 # Continue 25:31 https://www.youtube.com/watch?v=803Ei2Sq-Zs
 import os
 # use variables in routes 
-from flask import  Blueprint, flash, render_template, request, redirect, url_for, render_template 
+from flask import Blueprint, flash, render_template, request, redirect, url_for
 
 from flask_login import login_user, login_required, current_user ,logout_user
   
@@ -9,23 +12,37 @@ from app.models import User, Posts
 
 from werkzeug.urls import url_parse
 # import db from flaskblog folder in __init__.py
-from app import db
+from app import db, app 
+
 # make bcrypt and db work 
 import bcrypt
- 
+# random generator
+import uuid
 
 # why not .forms? Beacuse it is an class and needs "()" brackets
-from app.userinfo.forms import (RegistrationForm, LoginForm, EmptyForm)
+from app.userinfo.forms import RegistrationForm, LoginForm, EmptyForm, FileForm
 
 from werkzeug.utils import secure_filename
 
 
 
 from app.mail.routes import send_account_registration_email
-# make @userinfo work from userinfo folder 
-userinfo = Blueprint('userinfo', __name__)
 
- 
+from app.userinfo.search import add_to_index
+
+# from werkzeug.datastructures import FileStorage
+
+'''
+# Is there another way to do this.
+# import create_app or app app.elasticsearch... 
+from app import create_app
+# import Config to get create_app to work 
+from app.config import Config
+app = create_app(Config)
+'''
+
+# make @userinfo work from userinfo folder in this file 
+userinfo = Blueprint('userinfo', __name__)
 
 ''' 
 # todo turn into a database why is there no post number like 1st post ever posted in general etc?
@@ -40,6 +57,7 @@ posts = {
 
 
 ''' IMPORTANT flash not working before a redirect why? '''
+ 
 
 
 
@@ -51,32 +69,61 @@ posts = {
 def home():
     # .query.all() means I get all info from the database.   
     # use a try if the Posts_db is empty then it will skip it
+
     try: 
         posts = Posts.query.all()
     except:
         posts = None
-
+    # add_to_index('F', posts)
+    
+ 
     return render_template('home.html', posts=posts, title='home')  
 
+  
 
-
-
-
-
-
-
+ 
 @userinfo.route('/profile/<string:username>', methods = ['GET'])
 def profile(username): 
-    user = User.query.filter_by(username=username).first_or_404()
-    # profilepicture = request.files['profilepicture']
-    '''
-    The line below won't work becauses what if I don't have any posts. 
-    posts = Posts.query.filter_by(id=current_user.id).first()
-    posts.id
-    '''
 
-    return render_template('profile.html', title='profile', user=user)
+    user = User.query.filter_by(username=username).first_or_404()
+   
+
+    return render_template('profile.html', title='profile',user=user)
     
+
+
+
+
+# basedir_for_uploads = os.path.abspath(os.path.profilepictures(__file__)
+app.config['UPLOAD_FOLDER'] = r"C:\Users\nmyle\OneDrive\Desktop\flaskcodeusethis\flaskblog2\app\static\profilepictures"
+# remember todo add max file size for uploads
+# I might want to use this route below and the .html name?
+# @userinfo.route('/upload/profile/<string:username>', methods = ['GET'])
+@userinfo.route('/upload_picture', methods=['GET', 'POST'])
+def upload_picture():
+    form = FileForm()
+    if form.validate_on_submit():
+        picture_filename = form.image_filename.data     
+         # Make file secure...         
+        # This makes sure the filename is safe
+        filename_is_secure = secure_filename(picture_filename.filename)
+        
+        # make the file unique incase someone uploads the same name
+        # uuid is a random number generator
+        unique_filename = str(uuid.uuid1()) + filename_is_secure
+        upload = User(profile_pic_name=unique_filename)
+        db.session.add(upload)
+        db.session.commit()
+        # save file to a secure location
+        picture_filename.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))   
+        flash("You have succesfully uploaded your profile picture.")
+        return redirect(url_for('userinfo.profile, username')) # double check this
+
+    return render_template('upload_picture.html', form=form, title='upload Profile Picture') 
+
+
+ 
+
 
 
 '''move to different route.py keep with profile.'''
@@ -172,18 +219,19 @@ def check_if_the_user_is_already_registered(forms_username, forms_email):
         users = User.query.filter_by(username=forms_username).all()
     except: 
         users = None # what if username is None?
-    finally:
+        flash("Something has gone wrong" )
+        return redirect(url_for('userinfo.register'))
         # do I want to redirect to register route? 
     
-        for all_users in users: 
-            if all_users.username == forms_username:
-                flash ("The username is already taken. Please select another username.")     
-                return redirect(url_for('userinfo.register')) 
+    for all_users in users: 
+        if all_users.username == forms_username:
+            flash ("The username is already taken. Please select another username.")     
+            return redirect(url_for('userinfo.register')) 
 
-        for all_users in users:
-            if all_users.email == forms_email:    
-                flash("The email is already taken. Please select another email.")
-                return redirect(url_for('userinfo.register')) 
+    for all_users in users:
+        if all_users.email == forms_email:    
+            flash("The email is already taken. Please select another email.")
+            return redirect(url_for('userinfo.register')) 
 
 @userinfo.route("/register", methods = ['POST', 'GET'])
 def register():
@@ -295,7 +343,7 @@ def login():
 
             1st value)
 	        If the login URL does not have a next argument you will be logged in and redirected to the home page.
-            iow's next = '/login?next=/'. 
+            iow's next = '/login?next=/home'. 
             
             How would the other 2 situations happen?
 
@@ -325,8 +373,8 @@ def login():
 @login_required
 def logoff():
     logout_user()
-    return redirect (url_for('userinfo.home.html'))
+    return redirect (url_for('userinfo.home'))
                   
 
 
-
+ 

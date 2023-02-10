@@ -11,7 +11,7 @@
     <form validate ="" id="register" method="POST"> 
         <!-- Make the secret key work -->
         {{ form.csrf_token }} 
-        <!--the "render_field" makes the error message from wtf forms work-->
+        <!--the "render_field" makes the error message from wtf forms work?-->
         {{ render_field(form.username) }}
         {{ render_field(form.email) }}
         {{ render_field(form.password) }}
